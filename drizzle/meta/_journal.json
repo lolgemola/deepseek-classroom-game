@@ -8,6 +8,13 @@
       "when": 1791240155039,
       "tag": "0000_strong_dormammu",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791243275074,
+      "tag": "0001_daily_kang",
+      "breakpoints": true
     }
   ]
 }

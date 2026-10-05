@@ -2,6 +2,16 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { readExecutionProfile } from "./execution-profile.mjs";
 
+const [nodeMajor, nodeMinor] = process.versions.node.split(".").map(Number);
+if (nodeMajor < 22 || (nodeMajor === 22 && nodeMinor < 13)) {
+  console.error(`Node ${process.versions.node} is too old. Use Node 22.13 or later (x64 on Windows ARM).`);
+  if (process.platform === "win32") {
+    console.error('In PowerShell, select your installed runtime with:');
+    console.error('$env:Path = "$env:LOCALAPPDATA\\Programs\\node22-x64;" + $env:Path');
+  }
+  process.exit(1);
+}
+
 const [command, ...args] = process.argv.slice(2);
 if (!["dev", "build"].includes(command)) throw new Error("Expected dev or build.");
 const managedLinux = readExecutionProfile() === "managed-linux";

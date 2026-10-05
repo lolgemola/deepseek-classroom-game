@@ -1,30 +1,142 @@
 import { database } from '@/lib/raw-db';
-import { calculate, rounds } from '@/lib/game';
-const json=(x:any,status=200)=>Response.json(x,{status,headers:{'Cache-Control':'no-store'}});
-const fail=(message:string,status=400)=>json({error:message},status);
-const token=()=>crypto.randomUUID();
-export async function GET(req:Request) { try {
- const u=new URL(req.url), code=(u.searchParams.get('room')||'').toUpperCase(); const db=database();
- const room:any=await db.prepare('SELECT * FROM rooms WHERE code = ?').bind(code).first(); if(!room)return fail('Room not found. Check your code.',404);
- const isHost=u.searchParams.get('host')===room.host;
- const people=(await db.prepare('SELECT id,name,token FROM players WHERE room = ?').bind(code).all()).results as any[];
- const picks=(await db.prepare('SELECT player,round,option FROM choices WHERE room = ?').bind(code).all()).results as any[];
- const events=JSON.parse(room.events); const through=room.phase==='choosing'?room.round-1:room.phase==='lobby'?-1:room.round;
- const board=people.map(p=>{const own=Object.fromEntries(picks.filter(c=>c.player===p.id).map(c=>[c.round,c.option]));return {id:p.id,name:p.name,...calculate(own,events,through)}}).sort((a,b)=>b.score-a.score||b.cash-a.cash||a.name.localeCompare(b.name));
- const me=people.find(p=>p.token===u.searchParams.get('player')); const current=picks.find(c=>c.player===me?.id&&c.round===room.round);
- return json({room:code,phase:room.phase,round:room.round,version:room.version,host:isHost,players:board,submitted:picks.filter(c=>c.round===room.round).length,me:me?{...board.find(p=>p.id===me.id),choice:current?.option}:null,event:through===room.round&&through>=0?rounds[room.round].events[events[room.round]]:null});
- }catch(e){console.error(e);return fail('Game connection unavailable. Please retry.',503)} }
-export async function POST(req:Request) {try {
- const b:any=await req.json(); const db=database();
- if(b.action==='create') {const host=token();const code=crypto.randomUUID().replaceAll('-','').slice(0,6).toUpperCase();const events=rounds.map(()=>crypto.getRandomValues(new Uint8Array(1))[0]%2);
- await db.prepare('INSERT INTO rooms (code,host,phase,round,version,events,created) VALUES (?,?,?,?,?,?,?)').bind(code,host,'lobby',0,0,JSON.stringify(events),Date.now()).run();return json({room:code,host});}
- const code=String(b.room||'').toUpperCase();const room:any=await db.prepare('SELECT * FROM rooms WHERE code = ?').bind(code).first();if(!room)return fail('Room not found.',404);
- if(b.action==='join') {if(room.phase!=='lobby')return fail('This game has started. Ask your presenter for the next room.');const name=String(b.name||'').trim().slice(0,24);if(!name)return fail('Enter a company name.');const id=token(),secret=token();
- const result=await db.prepare("INSERT INTO players (id,room,name,token) SELECT ?,?,?,? WHERE EXISTS (SELECT 1 FROM rooms WHERE code=? AND phase='lobby')").bind(id,code,name,secret,code).run();if(!result.meta.changes)return fail('The game just started.');return json({player:secret});}
- if(b.action==='choose') {const p:any=await db.prepare('SELECT id FROM players WHERE room=? AND token=?').bind(code,b.player).first();if(!p)return fail('Please rejoin the room.',403);if(!Number.isInteger(b.option)||b.option<0||b.option>2)return fail('Invalid choice.');if(b.round!==room.round||room.phase!=='choosing')return fail('Choices are closed for this round.');
- const picks=(await db.prepare('SELECT round,option FROM choices WHERE room=? AND player=?').bind(code,p.id).all()).results as any[];if(calculate(Object.fromEntries(picks.map(c=>[c.round,c.option])),JSON.parse(room.events),room.round-1).failed)return fail('Your company is out of cash.');
- const result=await db.prepare("INSERT OR IGNORE INTO choices (room,player,round,option) SELECT ?,?,?,? WHERE EXISTS (SELECT 1 FROM rooms WHERE code=? AND phase='choosing' AND round=?)").bind(code,p.id,room.round,b.option,code,room.round).run();if(!result.meta.changes)return fail('Your choice is already locked, or the round has closed.');return json({ok:true});}
- if(b.action==='advance') {if(b.host!==room.host)return fail('Presenter access required.',403);let phase=room.phase,round=room.round;if(phase==='lobby')phase='choosing';else if(phase==='choosing')phase='reveal';else if(phase==='reveal'){if(round===3)phase='finished';else {round++;phase='choosing';}}else return fail('This game is finished.');
- const result=await db.prepare('UPDATE rooms SET phase=?,round=?,version=version+1 WHERE code=? AND version=?').bind(phase,round,code,b.version).run();if(!result.meta.changes)return fail('The room changed. Refresh and retry.',409);return json({ok:true});}
- return fail('Unknown action.');
- }catch(e){console.error(e);return fail('Could not save. Please retry.',503)}}
+import {
+  RULES_VERSION, canAfford, closeRound, initialCompany, initialMarket, isPlan,
+  isSetup, rankCompanies, rounds, type Snapshot, type Plan, type Phase,
+  type Hub, type Release, type GameView,
+} from '@/lib/simulation';
+
+type Room = { code: string; host: string; phase: Phase; round: number; version: number; rules_version: number; snapshot: string };
+type Founder = { id: string; room: string; name: string; token: string; hub: Hub; release: Release };
+type StoredPlan = { player: string; round: number; plan: string };
+const json = (value: unknown, status = 200) => Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } });
+const fail = (message: string, status = 400) => json({ error: message }, status);
+const codeOf = (value: unknown) => typeof value === 'string' ? value.trim().toUpperCase() : '';
+const secretOf = (value: unknown) => typeof value === 'string' ? value : '';
+
+async function load(code: string) {
+  const db = database();
+  const room = await db.prepare('SELECT * FROM simulation_rooms WHERE code=?').bind(code).first<Room>();
+  if (!room) return null;
+  if (room.rules_version !== RULES_VERSION) throw new Error('Unsupported room rules');
+  const founders = (await db.prepare('SELECT * FROM founders WHERE room=?').bind(code).all<Founder>()).results;
+  const snapshot: Snapshot = JSON.parse(room.snapshot);
+  if (!snapshot.companies.length) snapshot.companies = founders.map(initialCompany);
+  return { room, founders, snapshot };
+}
+
+export async function GET(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const state = await load(codeOf(url.searchParams.get('room')));
+    if (!state) return fail('Room not found. Older game rooms cannot use these rules; ask for a new room.', 404);
+    const { room, founders, snapshot } = state;
+    const own = founders.find(p => p.token === url.searchParams.get('player'));
+    const current = (await database().prepare('SELECT player,round,plan FROM plans WHERE room=? AND round=?').bind(room.code, room.round).all<StoredPlan>()).results;
+    const company = snapshot.companies.find(c => c.id === own?.id);
+    const active = snapshot.companies.filter(c => !c.failed);
+    const mine = current.find(p => p.player === own?.id);
+    const view: GameView = {
+      room: room.code, phase: room.phase, round: room.round, version: room.version,
+      rulesVersion: room.rules_version, host: url.searchParams.get('host') === room.host,
+      players: rankCompanies(snapshot.companies).map(c => ({ ...c, history: [] })),
+      me: company ? { ...company, plan: mine ? JSON.parse(mine.plan) : null } : null,
+      active: active.length, submitted: current.filter(p => active.some(c => c.id === p.player)).length,
+      market: snapshot.markets[room.round],
+      nextMarket: room.phase === 'results' && room.round < 3 ? snapshot.markets[room.round + 1] : null,
+      mix: room.phase === 'results' || room.phase === 'finished' ? snapshot.lastMix ?? null : null,
+    };
+    return json(view);
+  } catch (error) {
+    console.error(error);
+    return fail('Game connection unavailable. Please retry.', 503);
+  }
+}
+
+export async function POST(req: Request) {
+  let body: Record<string, unknown>;
+  try {
+    const value = await req.json();
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return fail('Invalid request.');
+    body = value as Record<string, unknown>;
+  } catch { return fail('Invalid JSON.'); }
+  try {
+    const db = database();
+    if (body.action === 'create') {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const code = crypto.randomUUID().replaceAll('-', '').slice(0, 6).toUpperCase();
+        const host = crypto.randomUUID();
+        const snapshot: Snapshot = { companies: [], markets: [initialMarket()] };
+        const result = await db.prepare('INSERT OR IGNORE INTO simulation_rooms (code,host,phase,round,version,rules_version,snapshot,created) VALUES (?,?,?,?,?,?,?,?)')
+          .bind(code, host, 'lobby', 0, 0, RULES_VERSION, JSON.stringify(snapshot), Date.now()).run();
+        if (result.meta.changes) return json({ room: code, host });
+      }
+      return fail('Could not create a room. Retry.', 503);
+    }
+    const state = await load(codeOf(body.room));
+    if (!state) return fail('Room not found. Ask your presenter for a new room.', 404);
+    const { room, founders, snapshot } = state;
+    if (body.action === 'join') {
+      if (room.phase !== 'lobby') return fail('This game has started. Join the next room.');
+      const name = typeof body.name === 'string' ? body.name.trim().slice(0, 24) : '';
+      if (!name) return fail('Enter a company name.');
+      if (!isSetup(body.hub, body.release)) return fail('Choose a starting hub and release model.');
+      const id = crypto.randomUUID(), token = crypto.randomUUID();
+      const result = await db.prepare("INSERT INTO founders (id,room,name,token,hub,release) SELECT ?,?,?,?,?,? WHERE EXISTS (SELECT 1 FROM simulation_rooms WHERE code=? AND phase='lobby')")
+        .bind(id, room.code, name, token, body.hub, body.release, room.code).run();
+      if (!result.meta.changes) return fail('The game just started.');
+      return json({ player: token });
+    }
+    if (body.action === 'choose') {
+      const founder = founders.find(f => f.token === secretOf(body.player));
+      if (!founder) return fail('Founder access required. Rejoin the room.', 403);
+      if (room.phase !== 'planning' || body.round !== room.round) return fail('Plans are closed for this round.');
+      if (!isPlan(body.plan)) return fail('Choose a valid focus, price and investment.');
+      const company = snapshot.companies.find(c => c.id === founder.id)!;
+      if (company.failed) return fail('Your company is out of cash.');
+      if (!canAfford(company, body.plan.investment)) return fail('Keep at least 20 cash after investment. Choose Keep cash.');
+      const plan: Plan = { focus: body.plan.focus, price: body.plan.price, investment: body.plan.investment,
+        ...(body.plan.rationale?.trim() ? { rationale: body.plan.rationale.trim() } : {}) };
+      const result = await db.prepare("INSERT OR IGNORE INTO plans (room,player,round,plan) SELECT ?,?,?,? WHERE EXISTS (SELECT 1 FROM simulation_rooms WHERE code=? AND phase='planning' AND round=?)")
+        .bind(room.code, founder.id, room.round, JSON.stringify(plan), room.code, room.round).run();
+      if (!result.meta.changes) return fail('Your plan is locked, or the round has closed.', 409);
+      return json({ ok: true });
+    }
+    if (body.action === 'advance') {
+      if (secretOf(body.host) !== room.host) return fail('Presenter access required.', 403);
+      if (!Number.isInteger(body.version) || body.version !== room.version) return fail('The room changed. Refresh and retry.', 409);
+      if (room.phase === 'finished') return fail('This game is finished.');
+      if (room.phase === 'lobby' && !founders.length) return fail('Wait for at least one founder.');
+      if (room.phase === 'planning' || room.phase === 'resolving') {
+        let resolvingVersion = room.version;
+        if (room.phase === 'planning') {
+          // This atomic write freezes submissions. Every insert before it is counted;
+          // inserts after it fail their phase condition. Resolution can be retried.
+          const frozen = await db.prepare("UPDATE simulation_rooms SET phase='resolving',version=version+1 WHERE code=? AND version=? AND phase='planning'")
+            .bind(room.code, room.version).run();
+          if (!frozen.meta.changes) return fail('The room changed. Refresh and retry.', 409);
+          resolvingVersion++;
+        }
+        const rows = (await db.prepare('SELECT player,plan FROM plans WHERE room=? AND round=?').bind(room.code, room.round).all<StoredPlan>()).results;
+        const submitted = Object.fromEntries(rows.map(p => [p.player, JSON.parse(p.plan) as Plan]));
+        const closed = closeRound(snapshot, submitted, room.round);
+        const saved = await db.prepare("UPDATE simulation_rooms SET phase='results',snapshot=?,version=version+1 WHERE code=? AND version=? AND phase='resolving'")
+          .bind(JSON.stringify(closed), room.code, resolvingVersion).run();
+        if (!saved.meta.changes) return fail('Results were already published. Refresh.', 409);
+        return json({ ok: true });
+      }
+      let nextPhase: Phase, nextRound = room.round;
+      if (room.phase === 'lobby') nextPhase = 'briefing';
+      else if (room.phase === 'briefing') nextPhase = 'planning';
+      else if (room.phase === 'results' && room.round === rounds.length - 1) nextPhase = 'finished';
+      else { nextPhase = 'briefing'; nextRound++; }
+      const result = await db.prepare('UPDATE simulation_rooms SET phase=?,round=?,version=version+1 WHERE code=? AND version=? AND phase=?')
+        .bind(nextPhase, nextRound, room.code, room.version, room.phase).run();
+      if (!result.meta.changes) return fail('The room changed. Refresh and retry.', 409);
+      return json({ ok: true });
+    }
+    return fail('Unknown action.');
+  } catch (error) {
+    console.error(error);
+    return fail('Could not save. Retry; the presenter can resume interrupted results.', 503);
+  }
+}

@@ -1,65 +1,68 @@
 # DeepSeek classroom game
 
-A live strategy simulation inspired by the DeepSeek case. A presenter creates a room, students scan its QR code and name fictional AI companies, and everyone plays four rounds together.
+A 10–15 minute multiplayer strategy simulation inspired by the DeepSeek case. Founders choose a fictional starting location and release model, then make connected decisions over four rounds. The class's collective choices change the next market through deterministic rules. The game uses no AI service, generated events or random market outcomes.
 
 ## Playing
 
-1. On the presenter laptop, select **Host a new game**.
-2. Students scan the QR code or enter the room code. Start once everyone has joined; late joining is closed.
-3. Open each round: launch, monetization, investment, then final positioning. Each founder locks one of three strategies. Immediate trade-offs are visible; the selected market event stays hidden until reveal.
-4. Use the suggested 45-second timer, then manually close choices and reveal the shared event. The timer does not close the round automatically.
-5. Discuss the result and advance. Finish with the leaderboard and discussion prompt.
+1. Presenter selects **Host a new game** and projects the QR code.
+2. Founders join with a company name, starting hub (research, enterprise or developer) and release model (open, closed or open core). These stay fixed.
+3. Presenter introduces the market bulletin, then opens decisions. Each founder chooses customer focus, price and an investment profile, reviews the plan and confirms it. Drafts can be edited until confirmation.
+4. After the suggested 75 seconds, presenter closes manually. Results explain revenue, investment, operating costs, service costs and remaining cash.
+5. The class's decisions create the next bulletin: price competition, crowded segments, capability races and other pressures. Everyone sees the conditions before deciding again.
+6. After four rounds, compare cash results and discuss what customers would pay for if the model were free.
 
-Companies start with 100 cash, 50 users and 50 trust. Score is cash + users + trust. Cash at zero or below means bankruptcy and a zero score; missed choices cost 15 cash. Trust stays between 0 and 100; users cannot fall below zero. Ties use remaining cash, then share a rank.
+All companies begin with 150 fictional cash, 6 developer customers and 2 enterprise customers. Investment costs 24; at least 20 cash must remain after investment. Capabilities persist with diminishing returns. Highest ending cash among solvent companies wins; cash ties share rank. Cash at zero or below means bankruptcy. Missed plans carry forward focus and price without investing; round one defaults to both markets and standard pricing.
 
-Keep the presenter session on its original device. Browser storage holds a room access token so refreshing restores the session. Clearing storage loses access. The QR link contains only the room code.
+Aim for 1–2 minutes joining, four rounds of about 2 minutes, and a 2–3 minute discussion. Timers are guides; the presenter controls all transitions.
+
+Read [RULES.md](RULES.md) for the nine adaptive conditions and financial model. [GAME_PLAN.md](GAME_PLAN.md) records the implemented scope.
 
 ## Local setup
 
-Requires Node.js **22.13 or later** and npm. Uses React 19, TypeScript, Vinext/Vite, Cloudflare Workers and Cloudflare D1. Supports Windows, macOS and Linux. On Windows ARM, use an x64 Node runtime under emulation: the pinned workerd package does not support native Windows ARM.
+Requires Node **22.13 or later**, npm, and Windows, macOS or Linux. On Windows ARM, use **x64 Node under emulation** because the pinned workerd package does not support native Windows ARM. Check `node -p "process.version + ' ' + process.arch"`.
 
 ```sh
 npm ci
 npm run build
 ```
 
-The build generates `dist/server/wrangler.json`. Apply the initial migration **once per local database** before creating a room:
+The build generates `dist/server/wrangler.json`. Apply each pending migration **once**, in order, to the local database:
 
 ```sh
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_strong_dormammu.sql
-```
-
-Then run:
-
-```sh
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_daily_kang.sql
 npm run dev
 ```
 
-Use the local URL printed by the server (normally `http://localhost:5173`). `npm start` previews the built Worker locally. Both previews share `.wrangler/state` with migrations. Phones cannot access a laptop through a localhost QR URL; use a deployed HTTPS URL for classroom play.
+Existing checkouts that applied `0000` only need `0001`. Old tables are retained, but old rooms and browser sessions are not reused by version 2. Start a new room. Do not replay migrations already applied.
 
-For a type check, run `npx tsc --noEmit`.
+Open the URL printed by the server, normally `http://127.0.0.1:5173`. `npm start` previews the built Worker locally. Both share `.wrangler/state` with migrations. Phones cannot reach a laptop through a localhost QR URL: classroom phone play requires an accessible deployment.
+
+## Checks
+
+```sh
+npm test
+npm run check:balance
+npx tsc --noEmit
+npm run build
+```
+
+With development running, `npm run test:api` creates disposable local test rooms and exercises 30 founders through four rounds. Pass another **test** URL with `npm run test:api -- http://127.0.0.1:PORT` if needed. It verifies private submissions, presenter access, duplicates, missed plans, adaptive conditions and a submission racing closure.
+
+The balance check compares 324 constant strategies against five classroom compositions. It checks that the strongest plan changes with the market, that investing can pay off, and that preserving cash has a defensible context. This is a rehearsal aid, not proof of balance across every possible sequence. Test the eventual deployed version with two physical phones and a presenter laptop before class.
 
 ## Source and hosting
 
-GitHub stores the source. **GitHub Pages cannot run the multiplayer backend.** Production needs a Worker-compatible host, a shared D1 database bound as `DB`, and the SQL migration applied to that production database.
+React 19, TypeScript, Vinext/Vite, Cloudflare Workers, D1 and Drizzle. GitHub stores the source; **GitHub Pages cannot run the multiplayer backend**. Production needs a Worker-compatible host, a real D1 database bound as `DB`, and the migrations applied to that database.
 
-The repository retains the original starter's build helpers. `.openai/hosting.json` declares the logical DB binding and an unpublished Sites registration; it contains no credentials and does not represent a working deployment. The generated local Wrangler configuration uses a placeholder database ID. Configure a real database and deployment before publishing a Worker. No production deployment is included.
-
-## Code map
+The original starter build helpers and `.openai/hosting.json` remain. That file declares the logical DB binding and an unpublished Sites registration, not credentials or a working deployment. The local Wrangler config has a placeholder database ID. No production game deployment is included.
 
 | File | Purpose |
 | --- | --- |
-| `app/Game.tsx` | Presenter/player UI, QR, polling and session restore |
-| `app/globals.css` | Responsive dark blue styles |
-| `app/api/game/route.ts` | Create, join, choose, advance and read API |
-| `lib/game.ts` | Strategies, fictional events and scoring |
-| `lib/raw-db.ts` | D1 binding access |
-| `db/schema.ts`, `drizzle/` | Schema and migration |
+| `app/Game.tsx` | Presenter/player screens, QR, draft and session restoration |
+| `app/api/game/route.ts` | Server-authoritative room phases and plan submission |
+| `lib/simulation.ts` | Economics, market rules, results and ranking |
+| `db/schema.ts`, `drizzle/` | Legacy-preserving version 2 schema and migration |
+| `tests/`, `scripts/check-balance.mjs`, `scripts/smoke-game.mjs` | Model, balance and API verification |
 
-Decisions and scoring are server-authoritative. All players in a room receive the same randomly selected event per round. Future event alternatives are present in the client bundle; this is a casual classroom simulation. Company names are stored in D1 and shown to room participants. No case PDF or real student information is bundled.
-
-## Classroom readiness
-
-Previous local validation covered 30 simultaneous founders through all four rounds, host authorization, hidden selected events, duplicate choices, late joining, missed decisions and score arithmetic. Browser checks covered room creation, QR generation, joining, locked-choice restoration after refresh and a 390 × 844 phone layout.
-
-Rehearse on the final deployed URL with two physical phones and a presenter laptop, and review scoring balance. Scenarios and events are fictional teaching material.
+Current plans remain private until the round closes; the next bulletin uses aggregated choices. Session tokens and local drafts are stored on the device; confirmed plans and shared room state live in D1. Company names are visible to room participants. Fictional teaching material only; no student roster or case PDF is bundled. This is a casual classroom simulation, and its rules are visible in the client bundle.

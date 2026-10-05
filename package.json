@@ -6,6 +6,9 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "test": "node --test tests/simulation.test.mjs",
+    "check:balance": "node scripts/check-balance.mjs",
+    "test:api": "node scripts/smoke-game.mjs",
     "install:ci": "node scripts/install-ci.mjs",
     "dev": "node scripts/run-framework.mjs dev",
     "build": "node scripts/run-framework.mjs build",
