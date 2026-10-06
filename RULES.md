@@ -12,7 +12,7 @@ Name → ecosystem → review → ready. The base model stays open for every com
 | Enterprise | 2 | 2 | 65 | 14 | New enterprise accounts ×1.15 |
 | Developer | 2 | 4 | 55 | 10 | Community growth ×1.10 |
 
-Four rounds: Launch, Monetize, Scale, Defend. Suggested 75-second planning time, manually closed by the presenter. Target total: 2 minutes setup, 7–8 minutes rounds, 2–3 minutes discussion. Actual timing needs a class rehearsal.
+Four rounds: Launch, Monetize, Scale, Defend. Suggested 90-second planning time, manually closed by the presenter. Read conditions before opening decisions. Target total around 15 minutes: 2 minutes setup, 6 minutes decisions plus briefings/results, and 2–3 minutes discussion. Actual timing needs a class rehearsal.
 
 ## Decisions and paid offerings
 
@@ -22,9 +22,9 @@ Four rounds: Launch, Monetize, Scale, Defend. Suggested 75-second planning time,
 | Partnerships | Partner-distributed access | 1.6 / 4 / 7 | 2 | Extra 35 capacity; platform revenue share |
 | Services | Hosting, tools, integration and support | 1.3 / 3.2 / 5.5 | 8 | More open adoption; conversion matures |
 
-A developer account uses one unit; an enterprise account uses three billed/delivery units. Commercial licensing never revokes existing free model rights. In this teaching model, premium licensing introduces restrictive terms in the new paid package: trust falls 6 unless that round's ecosystem investment supports the open community. Ordinary paid licensing has no automatic trust penalty.
+A developer account uses one unit; an enterprise account uses three billed/delivery units. Commercial licensing never revokes existing free model rights. In this teaching model, premium licensing introduces restrictive terms in the new paid package: the 6-point trust penalty is multiplied by (1 − ecosystem cash / 24), so community investment cushions it proportionally. Ordinary paid licensing has no automatic trust penalty.
 
-Investments cost 24 and increase [quality, reliability, ecosystem]: research [2.4,0.6,0.5], reliability [0.6,2.4,0.5], ecosystem [0.5,0.6,2.4]. Each gain is multiplied by (1 − opening capability/12); resulting capabilities round to one decimal and cap at 10. Keep cash costs zero.
+Use three sliders to allocate integer cash amounts totaling at most 24. Unspent budget stays as cash. A full 24 invested in one area increases [quality, reliability, ecosystem]: research [2.4,0.6,0.5], reliability [0.6,2.4,0.5], ecosystem [0.5,0.6,2.4]. Each gain is multiplied by (1 − opening capability/12); resulting capabilities round to one decimal and cap at 10. Split investments sum each full-investment gain vector weighted by cash allocated / 24, then apply diminishing returns once. Zero spending has no gains or cost. The UI projects updated capabilities, including cross-capability gains.
 
 Changing a previously chosen path costs 12. At least 20 cash must remain after investment plus switching. A transition applies ×0.8 to new account acquisition and existing account retention that round; existing accounts are migrated, not discarded. Capabilities, community adoption, and trust persist. Path tenure restarts at one. Initial path selection is free. If no discretionary spending occurs, an already low-cash company can continue below the 20 reserve.
 
@@ -52,13 +52,13 @@ Use updated capabilities for the following calculations. All monetary ledger ent
 - Operating surplus = roundMoney(retained revenue − operations − delivery), before investment or transition.
 - Closing cash = roundMoney(opening cash + operating surplus − investment − transition).
 - Dependence: partnership +22 per round, other paths −18, clamped to [0,100]. It is an illustrative index, not a probability. Revenue-share calculation uses opening dependence.
-- Community trust: +3 for service ratio at least 0.95; otherwise −ceil((1−service ratio) ×24). Ecosystem investment adds 4. Restrictive premium licensing terms subtract 6 unless ecosystem investment supports the open base. Any premium capability mismatch subtracts 5. Clamp total trust to [0,100].
+- Community trust: +3 for service ratio at least 0.95; otherwise −ceil((1−service ratio) ×24). Ecosystem investment adds 4 × ecosystem cash / 24. Restrictive premium licensing terms subtract 6 × (1 − ecosystem cash / 24). Round the total trust change once. Any premium capability mismatch subtracts 5. Clamp total trust to [0,100].
 
 Services maturation is compressed into four rounds for teaching; it is not a forecast of real revenue timing. Economic results and explanations are saved together, including the gross/net revenue ledger.
 
 ## Adaptive conditions
 
-Computed from active companies at the start of the closed round and their plans, including fallback plans. Percentages normalize by active company count. Conditions affect only the next round and expire before recomputation.
+Computed from active companies at the start of the closed round and their plans, including fallback plans. Path and price percentages normalize by active company count. Investment triggers use class budget shares: total cash assigned to an area / (24 × active companies). Kept share is unspent budget / (24 × active companies), including missed plans. A token allocation does not count as a full investment. Conditions affect only the next round and expire before recomputation.
 
 | Trigger | Threshold | Next-round effect |
 | --- | --- | --- |
@@ -66,11 +66,11 @@ Computed from active companies at the start of the closed round and their plans,
 | Licensing | ≥60% | New licensing acquisition ×0.65 |
 | Partnerships | ≥60% | Base partner share 40% instead of 28% |
 | Services | ≥60% | Services factor 0.80, cushioned by ecosystem |
-| Research investment | ≥50% | Quality weight 1.50 |
-| Ecosystem investment | ≥50% | Ecosystem weight 1.50 |
-| Low reliability | Opening mean <4 and reliability investment <25% | Delivery cost ×1.20 |
+| Research budget share | ≥50% | Quality weight 1.50 |
+| Ecosystem budget share | ≥50% | Ecosystem weight 1.50 |
+| Low reliability | Opening mean <4 and reliability budget share <25% | Delivery cost ×1.20 |
 | Premium pricing | ≥60% | Demand ×1.12 |
-| Keep cash | ≥60% | Quality weight at least 1.25 |
+| Unspent budget share | ≥60% | Quality weight at least 1.25 |
 
 Conditions can coexist. Quality weight uses the maximum, not addition; partner share caps at 50%; capability attraction and conversion are clamped as above. Each condition has a distinct bounded factor, so duplicate stacking cannot occur. All active effects are visible in the bulletin; the first three appear immediately and the rest expand.
 

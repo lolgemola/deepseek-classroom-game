@@ -1,6 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { paths, prices, investments, type RoundResult } from "@/lib/simulation";
+import {
+  paths,
+  prices,
+  investmentSummary,
+  type RoundResult,
+} from "@/lib/simulation";
 import CashFlow from "./CashFlow";
 export default function RoundResults({
   result: r,
@@ -16,7 +21,7 @@ export default function RoundResults({
     if (!identity || matchMedia("(prefers-reduced-motion: reduce)").matches)
       return;
     try {
-      const key = "deepseek-result-v3:" + identity + ":" + r.round;
+      const key = "deepseek-result-v4:" + identity + ":" + r.round;
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, "seen");
         // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore a once-only animation flag from browser storage after hydration.
@@ -59,9 +64,7 @@ export default function RoundResults({
       <div className="plan-summary">
         <span>{paths.find((p) => p.id === r.plan.path)?.title}</span>
         <span>{prices.find((p) => p.id === r.plan.price)?.title} pricing</span>
-        <span>
-          {investments.find((p) => p.id === r.plan.investment)?.title}
-        </span>
+        <span>{investmentSummary(r.plan.investment)}</span>
       </div>
       {r.missed && (
         <p className="small">

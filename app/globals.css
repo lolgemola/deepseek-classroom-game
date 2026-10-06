@@ -1262,3 +1262,73 @@ footer {
 .founder-result > details {
   margin-top: 20px;
 }
+.investment-sliders .choice-description {
+  margin: 0 0 16px;
+}
+.allocation-summary {
+  display: flex;
+  gap: 24px;
+  padding: 14px 18px;
+  background: var(--bg);
+  border-radius: 12px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.allocation-summary b {
+  color: var(--blue);
+  font-size: 20px;
+  margin-right: 4px;
+}
+.allocation-row {
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+}
+.allocation-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.allocation-heading label {
+  font-weight: 600;
+}
+.allocation-number {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.allocation-number input {
+  width: 72px;
+  text-align: center;
+  padding: 8px;
+  font-size: 16px;
+  color: var(--text);
+}
+.allocation-row input[type="range"] {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 0;
+  accent-color: var(--blue);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  margin: 6px 0;
+}
+.allocation-row p {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+.allocation-row small {
+  font-size: 14px;
+  color: var(--muted);
+}
+.allocation-row small b {
+  color: var(--text);
+}
+.investment-sliders:disabled .allocation-row {
+  opacity: 0.7;
+}

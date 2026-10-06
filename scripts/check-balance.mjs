@@ -1,16 +1,28 @@
 import { simulation as g } from "../tests/load-simulation.mjs";
 import assert from "node:assert/strict";
 const policies = [];
+const allocations = [
+  ...g.investments.map((i) => i.id),
+  { research: 8, reliability: 8, ecosystem: 8 },
+  { research: 12, reliability: 12, ecosystem: 0 },
+  { research: 12, reliability: 0, ecosystem: 12 },
+  { research: 0, reliability: 12, ecosystem: 12 },
+  { research: 12, reliability: 0, ecosystem: 0 },
+  { research: 0, reliability: 12, ecosystem: 0 },
+  { research: 0, reliability: 0, ecosystem: 12 },
+  { research: 12, reliability: 8, ecosystem: 4 },
+  { research: 0, reliability: 6, ecosystem: 18 },
+];
 for (const h of g.hubs)
   for (const path of g.paths)
     for (const price of g.prices)
-      for (const investment of g.investments)
+      for (const investment of allocations)
         policies.push({
           hub: h.id,
           plans: Array.from({ length: 4 }, () => ({
             path: path.id,
             price: price.id,
-            investment: investment.id,
+            investment: investment,
           })),
         });
 for (const h of g.hubs)
@@ -47,6 +59,14 @@ const classrooms = [
   [
     "Open integrations",
     { path: "licensing", price: "standard", investment: "ecosystem" },
+  ],
+  [
+    "Split investment",
+    {
+      path: "services",
+      price: "standard",
+      investment: { research: 12, reliability: 8, ecosystem: 4 },
+    },
   ],
   ["Mixed market", null],
 ];
@@ -99,7 +119,10 @@ for (const [name, p] of classrooms) {
     winner: {
       hub: results[0].hub,
       sequence: results[0].plans
-        .map((p) => p.path + "/" + p.price + "/" + p.investment)
+        .map(
+          (p) =>
+            p.path + "/" + p.price + "/" + g.investmentSummary(p.investment),
+        )
         .join(" -> "),
       cash: results[0].cash,
     },

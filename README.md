@@ -6,15 +6,15 @@ A 10–15 minute multiplayer activity closing a presentation about DeepSeek and 
 
 1. Presenter hosts a room and projects its QR code.
 2. Students join with a company name, choose a starting ecosystem with explained trade-offs, review the starting company, and confirm ready.
-3. Four rounds: choose commercial licensing, strategic partnerships or value-added services; set price; invest in research, reliability, ecosystem, or keep cash. Review and lock the plan. Suggested planning time is 75 seconds; the presenter closes manually.
+3. Four rounds: choose commercial licensing, strategic partnerships or value-added services; set price; split up to 24 cash across research, reliability and ecosystem using sliders, or keep some/all cash. Review and lock the plan. Suggested planning time is 90 seconds, after reading the conditions; the presenter closes manually.
 4. Results visually separate open adoption, paying accounts, gross billings, platform share, costs and cash. Collective choices shape the next published market.
 5. Final company profiles and presenter comparison show cash history, community trust, adoption, paying accounts, dependence and operating surplus. Recommend a path for DeepSeek and explain what it sacrifices.
 
-Start with 150 fictional cash and 20 open adopters, zero paying accounts. Investment costs 24; switching paths costs 12 and has a temporary migration penalty. Keep 20 after discretionary costs. Highest ending cash among solvent companies wins; ties share rank. Bankruptcy is permanent. Missing plans continue the last path/price without investing; first-round fallback is standard-price services.
+Start with 150 fictional cash and 20 open adopters, zero paying accounts. Investment spending is capped at 24 per round; switching paths costs 12 and has a temporary migration penalty. Keep 20 after discretionary costs. Highest ending cash among solvent companies wins; ties share rank. Bankruptcy is permanent. Missing plans continue the last path/price without investing; first-round fallback is standard-price services.
 
-Allow 2 minutes setup, 7–8 minutes rounds and 2–3 minutes discussion. Four-round cash is a financial result, not proof of long-term strategy. Rehearse on two phones and a presenter laptop.
+Aim for about 15 minutes including setup, briefings, four 90-second decision windows and discussion. Four-round cash is a financial result, not proof of long-term strategy. Rehearse on two phones and a presenter laptop.
 
-Read [RULES.md](RULES.md) for the complete fictional model, [GAME_PLAN.md](GAME_PLAN.md) for implemented scope, and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the design rationale. Create fresh rooms after this version update; older rooms have an actionable return-to-join message. No additional database migration is required for version 3.
+Read [RULES.md](RULES.md) for the complete fictional model, [GAME_PLAN.md](GAME_PLAN.md) for implemented scope, and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the design rationale. Create fresh rooms after this version update; older rooms have an actionable return-to-join message. No additional database migration is required for version 4.
 
 ## Local setup
 
@@ -34,7 +34,7 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1
 npm run dev
 ```
 
-Apply only pending migrations. `0002` adds setup readiness and preserves already configured founders. Old tables are retained, but old rooms and browser sessions are not reused by version 3. Start a new room. Do not replay migrations already applied.
+Apply only pending migrations. `0002` adds setup readiness and preserves already configured founders. Old tables are retained, but old rooms and browser sessions are not reused by version 4. Start a new room. Do not replay migrations already applied.
 
 Open the URL printed by the server, normally `http://127.0.0.1:5173`. `npm start` previews the built Worker locally. Both share `.wrangler/state` with migrations. Phones cannot reach a laptop through a localhost QR URL: classroom phone play requires an accessible deployment.
 
@@ -62,7 +62,7 @@ The original starter build helpers and `.openai/hosting.json` remain. That file 
 | `app/Game.tsx` | Presenter/player screens, QR, draft and session restoration |
 | `app/api/game/route.ts` | Server-authoritative room phases and plan submission |
 | `lib/simulation.ts` | Economics, market rules, results and ranking |
-| `db/schema.ts`, `drizzle/` | Legacy-preserving version 3 schema and migration |
+| `db/schema.ts`, `drizzle/` | Legacy-preserving version 4 schema and migration |
 | `tests/`, `scripts/check-balance.mjs`, `scripts/smoke-game.mjs` | Model, balance and API verification |
 
 Current plans remain private until the round closes; the next bulletin uses aggregated choices. Session tokens and local drafts are stored on the device; confirmed plans and shared room state live in D1. Company names are visible to room participants. Fictional teaching material only; no student roster or case PDF is bundled. This is a casual classroom simulation, and its rules are visible in the client bundle.

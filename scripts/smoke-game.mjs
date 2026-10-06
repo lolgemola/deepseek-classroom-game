@@ -113,8 +113,16 @@ for (let round = 0; round < 4; round++) {
   const expectedMarket = (await read(room)).market;
   const p =
     round === 0
-      ? { path: "services", price: "low", investment: "ecosystem" }
-      : { path: "licensing", price: "standard", investment: "reliability" };
+      ? {
+          path: "services",
+          price: "low",
+          investment: { research: 12, reliability: 8, ecosystem: 4 },
+        }
+      : {
+          path: "licensing",
+          price: "standard",
+          investment: { research: 6, reliability: 12, ecosystem: 0 },
+        };
   await post({ action: "choose", room, player: "fake", round, plan: p }, 403);
   await post(
     {
@@ -126,6 +134,22 @@ for (let round = 0; round < 4; round++) {
     },
     400,
   );
+  for (const investment of [
+    { research: 12, reliability: 8, ecosystem: 5 },
+    { research: -1, reliability: 0, ecosystem: 0 },
+    { research: 1.5, reliability: 0, ecosystem: 0 },
+  ]) {
+    await post(
+      {
+        action: "choose",
+        room,
+        player: founders[0].player,
+        round,
+        plan: { ...p, investment },
+      },
+      400,
+    );
+  }
   await post(
     {
       action: "choose",
@@ -191,16 +215,21 @@ for (let round = 0; round < 4; round++) {
   assert.equal(missed.missed, true);
   assert.equal(missed.investmentCost, 0);
   if (round === 0) {
-    for (const id of [
-      "price-war",
-      "hosting-crowding",
-      "integration-boom",
-      "capacity-squeeze",
-    ])
+    for (const id of ["price-war", "hosting-crowding"])
       assert.ok(
         closed.nextMarket.signals.some((s) => s.id === id),
         id,
       );
+    for (const id of ["integration-boom", "benchmark-race", "capacity-squeeze"])
+      assert.equal(
+        closed.nextMarket.signals.some((s) => s.id === id),
+        false,
+        id,
+      );
+    assert.equal(
+      closed.players.find((c) => c.id === mine.me.id).history[0].investmentCost,
+      24,
+    );
   }
   await post(
     { action: "choose", room, player: founders[29].player, round, plan: p },

@@ -1,6 +1,6 @@
 # DeepSeek classroom game: strategy and visual redesign
 
-Status: implemented as rules version 3. Validation and deployed status are recorded in GAME_PLAN.md and HANDOFF.md. Existing rooms do not need compatibility. Work in C:\github repo\deepseek-classroom-game. No AI services, generated events, or AI-generated assets.
+Status: implemented as rules version 4. Validation and deployed status are recorded in GAME_PLAN.md and HANDOFF.md. Existing rooms do not need compatibility. Work in C:\github repo\deepseek-classroom-game. No AI services, generated events, or AI-generated assets.
 
 ## 1. Purpose and learning outcomes
 
@@ -22,7 +22,7 @@ Target: about 12 minutes, adjustable within 10–15.
 | Four rounds: briefing, decisions, results | 7–8 minutes |
 | Compare outcomes and discuss DeepSeek recommendation | 2–3 minutes |
 
-Keep QR joining, company-name-first entry, ecosystem explanations, review/confirm, saved drafts, presenter-controlled progression, and a suggested 75-second decision timer. The timer remains manual; closing requires the existing incomplete-plan confirmation.
+Keep QR joining, company-name-first entry, ecosystem explanations, review/confirm, saved drafts, presenter-controlled progression, and a suggested 90-second decision timer. The timer remains manual; closing requires the existing incomplete-plan confirmation.
 
 Setup becomes name → starting ecosystem → starting summary → ready. Keep research, enterprise, and developer ecosystems with their advantages and costs. Remove the separate open/closed/open-core selection. Every company begins with an openly available base model; choosing a paid offering does not revoke existing open rights.
 
@@ -30,7 +30,7 @@ Each round has exactly three decision groups:
 
 1. Monetization path: commercial licensing, strategic partnerships, or value-added services.
 2. Price positioning: accessible, standard, or premium; display what the price applies to for the selected path.
-3. Investment: research, reliability, ecosystem, or keep cash.
+3. Investment: allocate up to 24 cash across research, reliability and ecosystem with sliders; unspent cash stays in the company.
 
 The monetization path replaces customer focus. Developer and enterprise demand derive from the path, ecosystem, capabilities, price, and market conditions. Players may change paths in later rounds; existing capabilities persist. Show a modest, explicit transition cost and ramp-up effect in the review when switching. Determine final values during balance calibration; never charge them silently.
 
@@ -167,3 +167,6 @@ Ready for classroom use when a new player can explain what their firm sells, ide
 ## 9. Scope boundaries
 
 No AI-generated behavior or assets. No borrowing, fundraising, budget sliders, contract negotiation, detailed geographic simulation, finite class-wide customer allocation, or additional rounds. No copying the supplied case into the app. Implement all four agreed visual features while keeping the interaction count at three decision groups per round.
+
+## Investment slider update
+Implemented: 24-cash cap, integer allocations, optional partial spending, live capability projections and numeric alternatives to touch sliders. Full-investment gain vectors blend by allocated cash before diminishing returns. Ecosystem trust support and premium-term mitigation scale proportionally; adaptive investment conditions use class budget shares. Conditions are read before opening a 90-second manual planning timer. Model tests cover splits, partial spending, invalid payloads, reserves and adaptive thresholds; API rehearsal covers 30 founders and four rounds. Balance sweep covers 432 representative policies across eight class compositions, not the entire allocation space.

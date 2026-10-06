@@ -10,8 +10,11 @@ Visuals: illustrated strategy cards, company relationship map, brief one-time re
 
 Classroom timing: about 2 minutes joining/setup, 7–8 minutes for four manual presenter-controlled rounds, 2–3 minutes discussion. Highest ending cash among solvent firms wins; profiles make other strategic outcomes visible. Final prompt asks students to recommend a path for DeepSeek and identify the sacrifice.
 
-Existing D1 tables suffice: extended financial state is in versioned JSON snapshots. Legacy release column is unused and retains an open value for new founders. No new migration is needed beyond 0000–0002. Session and draft namespaces are version 3. Older rooms return an actionable 410 message; create fresh rooms.
+Existing D1 tables suffice: extended financial state is in versioned JSON snapshots. Legacy release column is unused and retains an open value for new founders. No new migration is needed beyond 0000–0002. Session and draft namespaces are version 4. Older rooms return an actionable 410 message; create fresh rooms.
 
 Validation: model tests; 189 constant/representative switching policies across seven class compositions; 30-player full-round API smoke and closure race; TypeScript, scoped lint and production build; browser setup, draft restoration, decisions, results and responsive screens. Balance checks are a bounded search, not proof that no dominant strategy exists. Physical-phone rehearsal and actual classroom timing remain human checks.
 
 Excluded: AI-generated events/assets, borrowing, fundraising, budget sliders, contract negotiation, detailed geography, finite class customer pool and extra rounds. The case PDF and copied case content are not published.
+
+## Investment slider update
+Implemented: 24-cash cap, integer allocations, optional partial spending, live capability projections and numeric alternatives to touch sliders. Full-investment gain vectors blend by allocated cash before diminishing returns. Ecosystem trust support and premium-term mitigation scale proportionally; adaptive investment conditions use class budget shares. Conditions are read before opening a 90-second manual planning timer. Model tests cover splits, partial spending, invalid payloads, reserves and adaptive thresholds; API rehearsal covers 30 founders and four rounds. Balance sweep covers 432 representative policies across eight class compositions, not the entire allocation space.

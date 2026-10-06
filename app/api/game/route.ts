@@ -1,6 +1,7 @@
 import { database } from "@/lib/raw-db";
 import {
   RULES_VERSION,
+  investmentAllocation,
   canAfford,
   closeRound,
   initialCompany,
@@ -242,7 +243,7 @@ export async function POST(req: Request) {
       const plan: Plan = {
         path: body.plan.path,
         price: body.plan.price,
-        investment: body.plan.investment,
+        investment: investmentAllocation(body.plan.investment),
         ...(body.plan.rationale?.trim()
           ? { rationale: body.plan.rationale.trim() }
           : {}),

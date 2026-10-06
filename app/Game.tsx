@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import CompanySetup from "./CompanySetup";
+import InvestmentSliders from "./components/InvestmentSliders";
 import StrategyCards from "./components/StrategyCards";
 import CompanyMap from "./components/CompanyMap";
 import RoundResults from "./components/RoundResults";
@@ -10,7 +11,8 @@ import {
   hubs,
   paths,
   prices,
-  investments,
+  investmentEffects,
+  investmentSummary,
   rounds,
   ROUND_SECONDS,
   OPERATING_RESERVE,
@@ -29,11 +31,11 @@ type Session = { room: string; host?: string; player?: string };
 const cash = (n: number) => n.toFixed(1).replace(/\.0$/, "");
 const label = (items: readonly { id: string; title: string }[], id: string) =>
   items.find((x) => x.id === id)?.title ?? id;
-const SESSION_KEY = "deepseek-session-v3";
+const SESSION_KEY = "deepseek-session-v4";
 const defaultPlan: Plan = {
   path: "services",
   price: "standard",
-  investment: "save",
+  investment: { research: 0, reliability: 0, ecosystem: 0 },
 };
 
 function Rules() {
@@ -51,10 +53,11 @@ function Rules() {
         tools and support; conversion improves with ecosystem strength and time.
       </p>
       <p>
-        Investments cost 24, with diminishing capability gains near 10.
-        Switching paths costs 12, reduces new acquisition and existing-account
-        retention by 20% for that round, and restarts path tenure. Keep 20 cash
-        after these costs. Capabilities persist.
+        Allocate up to 24 cash across research, reliability and ecosystem.
+        Unspent cash stays with your company; gains scale with spending and
+        diminish near 10. Switching paths costs 12, reduces new acquisition and
+        existing-account retention by 20% for that round, and restarts path
+        tenure. Keep 20 cash after these costs. Capabilities persist.
       </p>
       <p>
         Community adopters are not automatically paying accounts. Enterprise
@@ -67,7 +70,7 @@ function Rules() {
         Highest ending cash among solvent companies wins; cash ties share rank.
         Bankruptcy is permanent. Missed plans repeat path and price without
         investment; first-round fallback is standard-price services. The
-        75-second timer is a manual guide.
+        90-second timer is a manual guide.
       </p>
       <p>
         This rule-driven teaching model compresses economic timing. A cash
@@ -160,7 +163,7 @@ function PlanSummary({ plan }: { plan: Plan }) {
     <div className="plan-summary">
       <span>{label(paths, plan.path)}</span>
       <span>{label(prices, plan.price)} pricing</span>
-      <span>{label(investments, plan.investment)}</span>
+      <span>{investmentSummary(plan.investment)}</span>
       {plan.rationale && <p>“{plan.rationale}”</p>}
     </div>
   );
@@ -186,8 +189,11 @@ function ClassMix({ mix }: { mix: Mix }) {
           {mix.count - mix.low - mix.premium} · premium {mix.premium}
         </p>
         <p>
-          Investment: research {mix.research} · reliability {mix.reliability} ·
-          ecosystem {mix.ecosystem} · keep cash {mix.save}
+          Investment budget: research{" "}
+          {Math.round((mix.research / mix.count) * 100)}% · reliability{" "}
+          {Math.round((mix.reliability / mix.count) * 100)}% · ecosystem{" "}
+          {Math.round((mix.ecosystem / mix.count) * 100)}% · kept{" "}
+          {Math.round((mix.save / mix.count) * 100)}%
         </p>
       </div>
       <p className="small">
@@ -266,7 +272,7 @@ export default function Game() {
   const isHost = data?.host ?? Boolean(session?.host);
   const draftKey =
     session?.player && data
-      ? `deepseek-draft-v3:${session.room}:${session.player}:${data.round}`
+      ? `deepseek-draft-v4:${session.room}:${session.player}:${data.round}`
       : "";
 
   useEffect(() => {
@@ -462,9 +468,7 @@ export default function Game() {
     typeof window !== "undefined" && session
       ? location.origin + "/?room=" + session.room
       : "";
-  const investmentCost = investments.find(
-    (i) => i.id === draft.investment,
-  )!.cost;
+  const investmentCost = investmentEffects(draft.investment).cost;
   const switchCost = me ? transitionCost(me, draft.path) : 0;
   const planCost = investmentCost + switchCost;
   const selectedPath = paths.find((p) => p.id === draft.path)!;
@@ -659,7 +663,7 @@ export default function Game() {
                   key={me.id}
                   name={me.name}
                   storageKey={
-                    "deepseek-setup-v3:" + session.room + ":" + session.player
+                    "deepseek-setup-v4:" + session.room + ":" + session.player
                   }
                   busy={busy}
                   onConfirm={(hub) => void act("setup", { hub })}
@@ -821,7 +825,7 @@ export default function Game() {
                 <div className="controlbar">
                   <p>
                     {isHost
-                      ? "Read the bulletin, then give founders 75 seconds to plan."
+                      ? "Read the bulletin, then give founders 90 seconds to plan."
                       : "Look at the main screen. Decisions will open shortly."}
                   </p>
                   {isHost && (
@@ -893,17 +897,12 @@ export default function Game() {
                       . Enterprises count as three units; open adopters are not
                       billed.
                     </p>
-                    <ChoiceGroup
-                      title="3. Where will you invest?"
-                      items={investments}
-                      value={draft.investment}
+                    <InvestmentSliders
+                      company={me}
+                      investment={draft.investment}
+                      path={draft.path}
                       disabled={busy || review}
-                      unaffordable={(id) =>
-                        !canAfford(me, id as Plan["investment"], draft.path)
-                      }
-                      onChange={(id) =>
-                        edit({ ...draft, investment: id as Plan["investment"] })
-                      }
+                      onChange={(investment) => edit({ ...draft, investment })}
                     />
                     {!canAfford(me, draft.investment, draft.path) && (
                       <p role="status" className="notice">

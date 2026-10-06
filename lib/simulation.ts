@@ -1,9 +1,9 @@
-export const RULES_VERSION = 3,
+export const RULES_VERSION = 4,
   STARTING_CASH = 150,
   INVESTMENT_COST = 24,
   SWITCH_COST = 12,
   OPERATING_RESERVE = 20,
-  ROUND_SECONDS = 75;
+  ROUND_SECONDS = 90;
 export const hubs = [
   {
     id: "research",
@@ -41,7 +41,7 @@ export const paths = [
     offering: "Premium edition + support",
     advantage: "Earlier direct revenue; own the customer relationship.",
     tradeoff:
-      "Narrower adoption. Premium terms reduce trust unless ecosystem investment supports the open base.",
+      "Narrower adoption. Premium terms can reduce trust; ecosystem investment cushions the loss.",
     fit: "Quality + reliability",
     rates: [1.5, 4, 7],
     operation: 4,
@@ -145,14 +145,15 @@ export const rounds = [
 export type Hub = (typeof hubs)[number]["id"];
 export type Path = (typeof paths)[number]["id"];
 export type Price = (typeof prices)[number]["id"];
-export type Investment = (typeof investments)[number]["id"];
+export type InvestmentAllocation = {
+  research: number;
+  reliability: number;
+  ecosystem: number;
+};
+export type Investment =
+  (typeof investments)[number]["id"] | InvestmentAllocation;
 export type Phase =
-  | "lobby"
-  | "briefing"
-  | "planning"
-  | "resolving"
-  | "results"
-  | "finished";
+  "lobby" | "briefing" | "planning" | "resolving" | "results" | "finished";
 export type Plan = {
   path: Path;
   price: Price;
@@ -264,13 +265,63 @@ const cap = (v: number) => money(clamp(v, 0, 10));
 export function isSetup(hub: unknown): hub is Hub {
   return hubs.some((h) => h.id === hub);
 }
+export function isInvestment(value: unknown): value is Investment {
+  if (typeof value === "string") return investments.some((i) => i.id === value);
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const a = value as InvestmentAllocation;
+  return (
+    Object.keys(a).length === 3 &&
+    [a.research, a.reliability, a.ecosystem].every(
+      (n) => Number.isInteger(n) && n >= 0 && n <= INVESTMENT_COST,
+    ) &&
+    a.research + a.reliability + a.ecosystem <= INVESTMENT_COST
+  );
+}
+export function investmentAllocation(
+  investment: Investment,
+): InvestmentAllocation {
+  if (typeof investment !== "string") return { ...investment };
+  return {
+    research: investment === "research" ? 24 : 0,
+    reliability: investment === "reliability" ? 24 : 0,
+    ecosystem: investment === "ecosystem" ? 24 : 0,
+  };
+}
+export function investmentEffects(investment: Investment) {
+  const allocation = investmentAllocation(investment);
+  const gains = [0, 0, 0];
+  for (const i of investments) {
+    if (i.id === "save") continue;
+    i.gains.forEach((gain, index) => {
+      gains[index] += (gain * allocation[i.id]) / INVESTMENT_COST;
+    });
+  }
+  return {
+    allocation,
+    cost: allocation.research + allocation.reliability + allocation.ecosystem,
+    gains,
+  };
+}
+export function investmentSummary(investment: Investment) {
+  const a = investmentAllocation(investment);
+  const parts = investments
+    .filter((i) => i.id !== "save" && a[i.id] > 0)
+    .map((i) => `${i.title} ${a[i.id as keyof InvestmentAllocation]}`);
+  return parts.length ? parts.join(" · ") : "Keep cash";
+}
+export function projectedCapabilities(c: Company, investment: Investment) {
+  const { gains } = investmentEffects(investment);
+  return [c.quality, c.reliability, c.ecosystem].map((v, i) =>
+    cap(v + gains[i] * (1 - v / 12)),
+  );
+}
 export function isPlan(value: unknown): value is Plan {
   if (!value || typeof value !== "object") return false;
   const p = value as Plan;
   return (
     paths.some((x) => x.id === p.path) &&
     prices.some((x) => x.id === p.price) &&
-    investments.some((x) => x.id === p.investment) &&
+    isInvestment(p.investment) &&
     (p.rationale === undefined ||
       (typeof p.rationale === "string" && p.rationale.length <= 160))
   );
@@ -303,7 +354,8 @@ export function canAfford(
   investment: Investment,
   path: Path = c.path ?? "services",
 ) {
-  const cost = (investment === "save" ? 0 : 24) + transitionCost(c, path);
+  if (!isInvestment(investment)) return false;
+  const cost = investmentEffects(investment).cost + transitionCost(c, path);
   return !c.failed && (cost === 0 || c.cash - cost >= 20);
 }
 export function fallbackPlan(c: Company): Plan {
@@ -353,7 +405,11 @@ export function nextMarket(
   for (const c of active) {
     const p = submitted[c.id] ?? fallbackPlan(c);
     mix[p.path]++;
-    mix[p.investment]++;
+    const { allocation, cost } = investmentEffects(p.investment);
+    mix.research += allocation.research / 24;
+    mix.reliability += allocation.reliability / 24;
+    mix.ecosystem += allocation.ecosystem / 24;
+    mix.save += (24 - cost) / 24;
     if (p.price === "low") mix.low++;
     if (p.price === "premium") mix.premium++;
     if (!submitted[c.id]) mix.missed++;
@@ -366,11 +422,12 @@ export function nextMarket(
     n: number,
     t: number,
     effect: string,
+    budget = false,
   ) =>
     m.signals.push({
       id,
       title,
-      cause: `${Math.round(share(n) * 100)}% of active companies; threshold ${t}%.`,
+      cause: `${Math.round(share(n) * 100)}% of ${budget ? "the class investment budget" : "active companies"}; threshold ${t}%.`,
       effect,
     });
   if (share(mix.low) >= 0.5) {
@@ -421,6 +478,7 @@ export function nextMarket(
       mix.research,
       50,
       "Quality contributes 50% more to paid-account demand.",
+      true,
     );
   }
   if (share(mix.ecosystem) >= 0.5) {
@@ -431,6 +489,7 @@ export function nextMarket(
       mix.ecosystem,
       50,
       "Ecosystem contributes 50% more to adoption and service conversion.",
+      true,
     );
   }
   const reliability =
@@ -440,7 +499,7 @@ export function nextMarket(
     m.signals.push({
       id: "capacity-squeeze",
       title: "Delivery costs rise",
-      cause: `Average reliability ${money(reliability)}/10, below 4; fewer than 25% invested in reliability.`,
+      cause: `Average reliability ${money(reliability)}/10, below 4; less than 25% of the class investment budget went to reliability.`,
       effect: "Delivery costs rise 20%, including partner-delivered accounts.",
     });
   }
@@ -462,6 +521,7 @@ export function nextMarket(
       mix.save,
       60,
       "Quality contributes at least 25% more to paid-account demand.",
+      true,
     );
   }
   if (!m.signals.length)
@@ -483,7 +543,7 @@ export function resolveCompany(
   if (!isPlan(p) || !canAfford(c, p.investment, p.path))
     throw Error("Invalid or unaffordable plan");
   const path = paths.find((x) => x.id === p.path)!,
-    invest = investments.find((x) => x.id === p.investment)!;
+    invest = investmentEffects(p.investment);
   const switching = transitionCost(c, p.path),
     tenure = c.path === p.path ? c.tenure + 1 : 1;
   const quality = cap(c.quality + invest.gains[0] * (1 - c.quality / 12)),
@@ -597,15 +657,17 @@ export function resolveCompany(
   const restrictive =
       p.path === "licensing" &&
       p.price === "premium" &&
-      p.investment !== "ecosystem",
+      invest.allocation.ecosystem < INVESTMENT_COST,
     premiumMismatch = p.price === "premium" && fit < 0.7;
   const serviceTrust = ratio >= 0.95 ? 3 : -Math.ceil((1 - ratio) * 24);
   const trust = Math.round(
     clamp(
       c.trust +
         serviceTrust +
-        (p.investment === "ecosystem" ? 4 : 0) -
-        (restrictive ? 6 : 0) -
+        (4 * invest.allocation.ecosystem) / INVESTMENT_COST -
+        (restrictive
+          ? 6 * (1 - invest.allocation.ecosystem / INVESTMENT_COST)
+          : 0) -
         (premiumMismatch ? 5 : 0),
       0,
       100,
@@ -622,8 +684,9 @@ export function resolveCompany(
     `${adoption} community adopters are not automatically paying accounts. Served: ${developers} developer and ${enterprise} enterprise accounts.`,
     `Paid fee ${rate}; enterprises count as three units. Gross billings ${grossRevenue}, partner share ${partnerCut}, retained revenue ${revenue}.`,
     `Operations ${operatingCost}, delivery ${serviceCost}; surplus ${operatingSurplus}, before investment ${invest.cost} and transition ${switching}.`,
+    `Investment: ${investmentSummary(p.investment)}; ${24 - invest.cost} of the 24-cash budget kept. Capability gains scale with spending and diminish near 10.`,
     `Capacity ${capacity} units; enterprise accounts use three. Unserved accounts: ${unserved}.`,
-    `Trust ${c.trust} → ${trust}: delivery ${serviceTrust}${p.investment === "ecosystem" ? ", ecosystem +4" : ""}${restrictive ? ", restrictive premium terms −6" : ""}${premiumMismatch ? ", capability mismatch −5" : ""}.`,
+    `Trust ${c.trust} → ${trust}: delivery ${serviceTrust}${invest.allocation.ecosystem ? `, ecosystem +${money((4 * invest.allocation.ecosystem) / INVESTMENT_COST)}` : ""}${restrictive ? `, restrictive premium terms −${money(6 * (1 - invest.allocation.ecosystem / INVESTMENT_COST))}` : ""}${premiumMismatch ? ", capability mismatch −5" : ""}.`,
   ];
   if (switching)
     explanations.push(

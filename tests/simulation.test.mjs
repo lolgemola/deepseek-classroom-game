@@ -250,3 +250,117 @@ test("failed firms stop playing and rank below solvent companies", () => {
   assert.equal(ranked[0].id, "c");
   assert.equal(ranked.at(-1).id, "a");
 });
+test("split allocations reject overspending and malformed money", () => {
+  for (const investment of [
+    { research: 12, reliability: 8, ecosystem: 5 },
+    { research: -1, reliability: 0, ecosystem: 0 },
+    { research: 1.5, reliability: 0, ecosystem: 0 },
+    { research: NaN, reliability: 0, ecosystem: 0 },
+    { research: Infinity, reliability: 0, ecosystem: 0 },
+    { research: "12", reliability: 0, ecosystem: 0 },
+    { research: 12, reliability: 8 },
+    { research: 0, reliability: 0, ecosystem: 0, borrow: 24 },
+  ])
+    assert.equal(g.isPlan(plan({ investment })), false);
+  assert.ok(
+    g.isPlan(
+      plan({ investment: { research: 12, reliability: 8, ecosystem: 4 } }),
+    ),
+  );
+});
+test("split and partial spending produce weighted capabilities and a reconciled ledger", () => {
+  const c = company("split", "research");
+  for (const investment of [
+    { research: 12, reliability: 8, ecosystem: 4 },
+    { research: 6, reliability: 4, ecosystem: 2 },
+    { research: 0, reliability: 0, ecosystem: 0 },
+  ]) {
+    const after = g.resolveCompany(c, plan({ investment }), g.initialMarket());
+    const r = after.history[0];
+    assert.equal(
+      r.investmentCost,
+      investment.research + investment.reliability + investment.ecosystem,
+    );
+    assert.deepEqual(
+      [after.quality, after.reliability, after.ecosystem],
+      g.projectedCapabilities(c, investment),
+    );
+    assert.equal(
+      r.closingCash,
+      Math.round(
+        (r.openingCash +
+          r.revenue -
+          r.operatingCost -
+          r.serviceCost -
+          r.investmentCost -
+          r.transitionCost) *
+          10,
+      ) / 10,
+    );
+  }
+  const r = g.resolveCompany(
+    c,
+    plan({ investment: { research: 12, reliability: 0, ecosystem: 0 } }),
+    g.initialMarket(),
+  );
+  assert.equal(r.quality, 4.8);
+  assert.equal(r.reliability, 2.3);
+  assert.equal(r.ecosystem, 2.2);
+});
+test("pure allocations preserve all-in outcomes and partial spending respects reserves", () => {
+  for (const id of ["research", "reliability", "ecosystem", "save"]) {
+    const c = company();
+    const pure = g.investmentAllocation(id);
+    const a = g.resolveCompany(c, plan({ investment: id }), g.initialMarket());
+    const b = g.resolveCompany(
+      c,
+      plan({ investment: pure }),
+      g.initialMarket(),
+    );
+    const { history: ah, ...av } = a,
+      { history: bh, ...bv } = b;
+    assert.deepEqual(av, bv);
+    assert.equal(ah[0].closingCash, bh[0].closingCash);
+  }
+  const c = { ...company(), cash: 35, path: "services" };
+  assert.ok(g.canAfford(c, { research: 10, reliability: 5, ecosystem: 0 }));
+  assert.equal(
+    g.canAfford(c, { research: 10, reliability: 6, ecosystem: 0 }),
+    false,
+  );
+  assert.equal(
+    g.canAfford(c, { research: 10, reliability: 5, ecosystem: 0 }, "licensing"),
+    false,
+  );
+});
+test("ecosystem trust support is proportional, tiny allocations do not bypass premium trade-offs", () => {
+  const c = company("trust", "research"),
+    market = g.initialMarket();
+  const result = (n) =>
+    g.resolveCompany(
+      c,
+      plan({
+        path: "licensing",
+        price: "premium",
+        investment: { research: 0, reliability: 0, ecosystem: n },
+      }),
+      market,
+    );
+  assert.ok(result(12).trust > result(0).trust);
+  assert.ok(result(12).trust < result(24).trust);
+  assert.equal(result(1).trust, result(0).trust);
+});
+test("adaptive investment triggers use budget shares, not investor headcounts", () => {
+  const cs = crowd();
+  const p = (r, l, e) =>
+    plan({ investment: { research: r, reliability: l, ecosystem: e } });
+  assert.equal(g.nextMarket(cs, submit(cs, p(11, 6, 0)), 1).qualityWeight, 1);
+  const m = g.nextMarket(cs, submit(cs, p(12, 6, 6)), 1);
+  assert.equal(m.qualityWeight, 1.5);
+  assert.equal(m.serviceFactor, 1);
+  assert.equal(m.mix.research, 5);
+  assert.equal(m.mix.save, 0);
+  assert.equal(g.nextMarket(cs, submit(cs, p(0, 5, 0)), 1).serviceFactor, 1.2);
+  assert.equal(g.nextMarket(cs, submit(cs, p(0, 0, 9)), 1).qualityWeight, 1.25);
+  assert.equal(g.nextMarket(cs, submit(cs, p(0, 0, 10)), 1).qualityWeight, 1);
+});
