@@ -2,8 +2,8 @@ export const RULES_VERSION = 4,
   STARTING_CASH = 150,
   INVESTMENT_COST = 24,
   SWITCH_COST = 12,
-  OPERATING_RESERVE = 20,
-  ROUND_SECONDS = 90;
+  OPERATING_RESERVE = 20;
+export const roundSeconds = (round: number): number => round === 0 ? 90 : 60;
 export const hubs = [
   {
     id: "research",

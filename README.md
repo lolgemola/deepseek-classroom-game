@@ -6,13 +6,13 @@ A 10–15 minute multiplayer activity closing a presentation about DeepSeek and 
 
 1. Presenter hosts a room and projects its QR code.
 2. Students join with a company name, choose a starting ecosystem with explained trade-offs, review the starting company, and confirm ready.
-3. Four rounds: choose commercial licensing, strategic partnerships or value-added services; set price; split up to 24 cash across research, reliability and ecosystem using sliders, or keep some/all cash. Review and lock the plan. Suggested planning time is 90 seconds, after reading the conditions; the presenter closes manually.
+3. Four rounds: choose commercial licensing, strategic partnerships or value-added services; set price; split up to 24 cash across research, reliability and ecosystem using sliders, or keep some/all cash. Review and lock the plan. Suggested planning time is 90 seconds for round 1 and 60 seconds for rounds 2–4, after reading the conditions; the presenter closes manually.
 4. Results visually separate open adoption, paying accounts, gross billings, platform share, costs and cash. Collective choices shape the next published market.
 5. Final company profiles and presenter comparison show cash history, community trust, adoption, paying accounts, dependence and operating surplus. Recommend a path for DeepSeek and explain what it sacrifices.
 
 Start with 150 fictional cash and 20 open adopters, zero paying accounts. Investment spending is capped at 24 per round; switching paths costs 12 and has a temporary migration penalty. Keep 20 after discretionary costs. Highest ending cash among solvent companies wins; ties share rank. Bankruptcy is permanent. Missing plans continue the last path/price without investing; first-round fallback is standard-price services.
 
-Aim for about 15 minutes including setup, briefings, four 90-second decision windows and discussion. Four-round cash is a financial result, not proof of long-term strategy. Rehearse on two phones and a presenter laptop.
+Aim for about 15 minutes including setup, briefings, a 90-second first decision window and three 60-second windows and discussion. Four-round cash is a financial result, not proof of long-term strategy. Rehearse on two phones and a presenter laptop.
 
 Read [RULES.md](RULES.md) for the complete fictional model, [GAME_PLAN.md](GAME_PLAN.md) for implemented scope, and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the design rationale. Create fresh rooms after this version update; older rooms have an actionable return-to-join message. No additional database migration is required for version 4.
 

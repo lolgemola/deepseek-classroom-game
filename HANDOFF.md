@@ -25,10 +25,10 @@ QR joins go straight to the company name. Founder phones show compact planning r
 
 
 ## Split investment and timing
-Research, reliability and ecosystem sliders allocate integer cash totaling at most 24. Unspent budget stays as cash. Weighted capability gains, proportional ecosystem trust support and budget-share adaptive triggers are server-authoritative. Paid path and pricing remain single choices. The presenter reads conditions before opening a 90-second manual timer. Version 4 requires fresh rooms; no new database migration.
+Research, reliability and ecosystem sliders allocate integer cash totaling at most 24. Unspent budget stays as cash. Weighted capability gains, proportional ecosystem trust support and budget-share adaptive triggers are server-authoritative. Paid path and pricing remain single choices. The presenter reads conditions before opening the manual timer (90 seconds for round 1; 60 seconds for rounds 2–4). Version 4 requires fresh rooms; no new database migration.
 
 ## Readability pass
-Player planning uses distinct revenue, pricing, investment and confirmation cards. Revenue and ecosystem choices show concise benefits/trade-offs; full explanations and the business map expand on demand. Slider descriptions, pricing mechanics and financial details are collapsed. Review shows the summary rather than disabled decision controls. Phone and desktop layout, expanded help and review/back persistence verified. Economics and 90-second timing unchanged.
+Player planning uses distinct revenue, pricing, investment and confirmation cards. Revenue and ecosystem choices show concise benefits/trade-offs; full explanations and the business map expand on demand. Slider descriptions, pricing mechanics and financial details are collapsed. Review shows the summary rather than disabled decision controls. Phone and desktop layout, expanded help and review/back persistence verified. Economics unchanged. Planning timing is 90 seconds for round 1 and 60 seconds for rounds 2–4.
 
 
 ## Market news presentation

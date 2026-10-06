@@ -14,7 +14,7 @@ import {
   investmentEffects,
   investmentSummary,
   rounds,
-  ROUND_SECONDS,
+  roundSeconds,
   OPERATING_RESERVE,
   canAfford,
   transitionCost,
@@ -70,7 +70,7 @@ function Rules() {
         Highest ending cash among solvent companies wins; cash ties share rank.
         Bankruptcy is permanent. Missed plans repeat path and price without
         investment; first-round fallback is standard-price services. The
-        90-second timer is a manual guide.
+        Timer: 90 seconds in round 1, 60 seconds in rounds 2–4. Close manually.
       </p>
       <p>
         This rule-driven teaching model compresses economic timing. A cash
@@ -250,7 +250,7 @@ export default function Game() {
     [copied, setCopied] = useState(false);
   const [draft, setDraft] = useState<Plan>(defaultPlan),
     [review, setReview] = useState(false);
-  const [seconds, setSeconds] = useState(ROUND_SECONDS),
+  const [seconds, setSeconds] = useState(roundSeconds(0)),
     [running, setRunning] = useState(false);
   const saving = useRef(false),
     currentSession = useRef(session);
@@ -365,7 +365,7 @@ export default function Game() {
   }, [session]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Synchronize the local guide timer with a server-controlled phase transition.
-    setSeconds(ROUND_SECONDS);
+    setSeconds(roundSeconds(data?.round ?? 0));
     setRunning(phase === "planning" && isHost);
   }, [data?.round, phase, isHost]);
   useEffect(() => {
@@ -817,7 +817,7 @@ export default function Game() {
                 <div className="controlbar">
                   <p>
                     {isHost
-                      ? "Read the bulletin, then give founders 90 seconds to plan."
+                      ? `Read the bulletin, then give founders ${roundSeconds(data.round)} seconds to plan.`
                       : "Look at the main screen. Decisions will open shortly."}
                   </p>
                   {isHost && (

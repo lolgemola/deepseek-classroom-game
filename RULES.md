@@ -12,7 +12,7 @@ Name → ecosystem → review → ready. The base model stays open for every com
 | Enterprise | 2 | 2 | 65 | 14 | New enterprise accounts ×1.15 |
 | Developer | 2 | 4 | 55 | 10 | Community growth ×1.10 |
 
-Four rounds: Launch, Monetize, Scale, Defend. Suggested 90-second planning time, manually closed by the presenter. Read conditions before opening decisions. Target total around 15 minutes: 2 minutes setup, 6 minutes decisions plus briefings/results, and 2–3 minutes discussion. Actual timing needs a class rehearsal.
+Four rounds: Launch, Monetize, Scale, Defend. Suggested planning time: 90 seconds in round 1, 60 seconds in rounds 2–4, manually closed by the presenter. Read conditions before opening decisions. Target total around 15 minutes: 2 minutes setup, 4.5 minutes decisions plus briefings/results, and 2–3 minutes discussion. Actual timing needs a class rehearsal.
 
 ## Decisions and paid offerings
 
