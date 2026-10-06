@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DeepSeek: Survive the AI Market",
-  description: "A live classroom strategy simulation. Found an AI company, make connected decisions and shape the market together over four rounds.",
+  title: "DeepSeek: The Open Model Business Challenge",
+  description:
+    "A classroom strategy simulation about sustainable monetization: choose licensing, partnerships or services around an open AI model.",
   other: {
     "codex-preview": "development",
   },

@@ -1,21 +1,20 @@
 # DeepSeek classroom game
 
-A 10–15 minute multiplayer strategy simulation inspired by the DeepSeek case. Founders choose a fictional starting location and release model, then make connected decisions over four rounds. The class's collective choices change the next market through deterministic rules. The game uses no AI service, generated events or random market outcomes.
+A 10–15 minute multiplayer activity closing a presentation about DeepSeek and sustainable monetization. Your base model is open: how will you fund its future? Deterministic rules only; no AI service, generated assets or random events.
 
 ## Playing
 
-1. Presenter selects **Host a new game** and projects the QR code.
-2. Founders first join with only a company name. They then compare starting ecosystems (research, enterprise or developer), review each advantage and trade-off, and choose a release model (open, closed or open core). A starting-company summary shows capabilities and costs before confirmation. The presenter waits until everyone is ready.
-3. Presenter introduces the market bulletin, then opens decisions. Each founder chooses customer focus, price and an investment profile, reviews the plan and confirms it. Drafts can be edited until confirmation.
-4. After the suggested 75 seconds, presenter closes manually. Results explain revenue, investment, operating costs, service costs and remaining cash.
-5. The class's decisions create the next bulletin: price competition, crowded segments, capability races and other pressures. Everyone sees the conditions before deciding again.
-6. After four rounds, compare cash results and discuss what customers would pay for if the model were free.
+1. Presenter hosts a room and projects its QR code.
+2. Students join with a company name, choose a starting ecosystem with explained trade-offs, review the starting company, and confirm ready.
+3. Four rounds: choose commercial licensing, strategic partnerships or value-added services; set price; invest in research, reliability, ecosystem, or keep cash. Review and lock the plan. Suggested planning time is 75 seconds; the presenter closes manually.
+4. Results visually separate open adoption, paying accounts, gross billings, platform share, costs and cash. Collective choices shape the next published market.
+5. Final company profiles and presenter comparison show cash history, community trust, adoption, paying accounts, dependence and operating surplus. Recommend a path for DeepSeek and explain what it sacrifices.
 
-All companies begin with 150 fictional cash, 6 developer customers and 2 enterprise customers. Investment costs 24; at least 20 cash must remain after investment. Capabilities persist with diminishing returns. Highest ending cash among solvent companies wins; cash ties share rank. Cash at zero or below means bankruptcy. Missed plans carry forward focus and price without investing; round one defaults to both markets and standard pricing.
+Start with 150 fictional cash and 20 open adopters, zero paying accounts. Investment costs 24; switching paths costs 12 and has a temporary migration penalty. Keep 20 after discretionary costs. Highest ending cash among solvent companies wins; ties share rank. Bankruptcy is permanent. Missing plans continue the last path/price without investing; first-round fallback is standard-price services.
 
-Aim for 1–2 minutes joining, four rounds of about 2 minutes, and a 2–3 minute discussion. Timers are guides; the presenter controls all transitions.
+Allow 2 minutes setup, 7–8 minutes rounds and 2–3 minutes discussion. Four-round cash is a financial result, not proof of long-term strategy. Rehearse on two phones and a presenter laptop.
 
-Read [RULES.md](RULES.md) for the nine adaptive conditions and financial model. [GAME_PLAN.md](GAME_PLAN.md) records the implemented scope.
+Read [RULES.md](RULES.md) for the complete fictional model, [GAME_PLAN.md](GAME_PLAN.md) for implemented scope, and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the design rationale. Create fresh rooms after this version update; older rooms have an actionable return-to-join message. No additional database migration is required for version 3.
 
 ## Local setup
 
@@ -35,7 +34,7 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1
 npm run dev
 ```
 
-Apply only pending migrations. `0002` adds setup readiness and preserves already configured founders. Old tables are retained, but old rooms and browser sessions are not reused by version 2. Start a new room. Do not replay migrations already applied.
+Apply only pending migrations. `0002` adds setup readiness and preserves already configured founders. Old tables are retained, but old rooms and browser sessions are not reused by version 3. Start a new room. Do not replay migrations already applied.
 
 Open the URL printed by the server, normally `http://127.0.0.1:5173`. `npm start` previews the built Worker locally. Both share `.wrangler/state` with migrations. Phones cannot reach a laptop through a localhost QR URL: classroom phone play requires an accessible deployment.
 
@@ -50,7 +49,7 @@ npm run build
 
 With development running, `npm run test:api` creates disposable local test rooms and exercises 30 founders through four rounds. Pass another **test** URL with `npm run test:api -- http://127.0.0.1:PORT` if needed. It verifies private submissions, presenter access, duplicates, missed plans, adaptive conditions and a submission racing closure.
 
-The balance check compares 324 constant strategies against five classroom compositions. It checks that the strongest plan changes with the market, that investing can pay off, and that preserving cash has a defensible context. This is a rehearsal aid, not proof of balance across every possible sequence. Test the eventual deployed version with two physical phones and a presenter laptop before class.
+The balance sweep compares 189 constant and representative changing policies across seven classroom compositions. It checks distinct winning sequences, a competitive context for all paths, and bankruptcy frequency. It is a bounded search, not proof of universal balance. Rehearse the deployed version on two physical phones and a presenter laptop.
 
 ## Source and hosting
 
@@ -63,7 +62,7 @@ The original starter build helpers and `.openai/hosting.json` remain. That file 
 | `app/Game.tsx` | Presenter/player screens, QR, draft and session restoration |
 | `app/api/game/route.ts` | Server-authoritative room phases and plan submission |
 | `lib/simulation.ts` | Economics, market rules, results and ranking |
-| `db/schema.ts`, `drizzle/` | Legacy-preserving version 2 schema and migration |
+| `db/schema.ts`, `drizzle/` | Legacy-preserving version 3 schema and migration |
 | `tests/`, `scripts/check-balance.mjs`, `scripts/smoke-game.mjs` | Model, balance and API verification |
 
 Current plans remain private until the round closes; the next bulletin uses aggregated choices. Session tokens and local drafts are stored on the device; confirmed plans and shared room state live in D1. Company names are visible to room participants. Fictional teaching material only; no student roster or case PDF is bundled. This is a casual classroom simulation, and its rules are visible in the client bundle.

@@ -1,213 +1,710 @@
-export const RULES_VERSION = 2;
-export const STARTING_CASH = 150;
-export const INVESTMENT_COST = 24;
-export const OPERATING_RESERVE = 20;
-export const ROUND_SECONDS = 75;
-
+export const RULES_VERSION = 3,
+  STARTING_CASH = 150,
+  INVESTMENT_COST = 24,
+  SWITCH_COST = 12,
+  OPERATING_RESERVE = 20,
+  ROUND_SECONDS = 75;
 export const hubs = [
-  { id: 'research', title: 'Research hub', description: 'Build near researchers and specialist talent.', advantage: 'Quality starts at 4/10 instead of 2/10. A stronger model can support premium offers.', tradeoff: 'Talent is expensive: operations cost 18 cash each round, before service costs.', operatingCost: 18 },
-  { id: 'enterprise', title: 'Enterprise hub', description: 'Build near business customers and trusted networks.', advantage: 'Trust starts at 65/100 instead of 55/100. Introductions bring 15% more new enterprise customers.', tradeoff: 'Operations cost 14 cash each round. Quality and ecosystem strength still start at 2/10.', operatingCost: 14 },
-  { id: 'developer', title: 'Developer hub', description: 'Build near app creators and an active developer community.', advantage: 'Ecosystem starts at 4/10 instead of 2/10. Introductions bring 10% more new developers.', tradeoff: 'Quality starts at 2/10 and trust at 55/100. You need to build credibility for premium enterprise offers. Operations cost 10 cash per round.', operatingCost: 10 },
+  {
+    id: "research",
+    title: "Research hub",
+    description: "Build near specialist talent.",
+    advantage: "Quality starts at 4/10. Differentiate premium offers.",
+    tradeoff:
+      "Operations cost 18 per round. Distribution and tools need investment.",
+    operatingCost: 18,
+  },
+  {
+    id: "enterprise",
+    title: "Enterprise hub",
+    description: "Build near business customers.",
+    advantage: "Trust starts at 65/100; enterprise acquisition is 15% higher.",
+    tradeoff: "Operations cost 14. Quality and ecosystem start at 2/10.",
+    operatingCost: 14,
+  },
+  {
+    id: "developer",
+    title: "Developer hub",
+    description: "Build near an active creator community.",
+    advantage:
+      "Ecosystem starts at 4/10; adoption grows 10% faster. Operations cost 10.",
+    tradeoff: "Quality starts at 2/10. Enterprise credibility needs work.",
+    operatingCost: 10,
+  },
 ] as const;
-export const releases = [
-  { id: 'open', title: 'Open release', description: 'Let people use and adapt the model. Sell convenient hosting and dependable service.', advantage: '25% more new developer adoption than the baseline. An open market gives a further adoption boost.', tradeoff: 'Paid conversion earns 72% of developer list revenue and 88% of enterprise list revenue. Adoption does not guarantee revenue.' },
-  { id: 'closed', title: 'Closed model', description: 'Keep the model controlled and sell access to it.', advantage: 'Earn the full list revenue from your served customer base.', tradeoff: '20% less new developer adoption than baseline. If open releases become standard, acquisition and revenue face further pressure.' },
-  { id: 'core', title: 'Open core', description: 'Offer an open base, then charge for advanced features and services.', advantage: '5% more new developer adoption than baseline. Earn 88% of developer and 94% of enterprise list revenue.', tradeoff: 'Supporting two offerings adds 3 cash to operations every round. Paid conversion is lower than a closed offer.' },
-] as const;
-export const focuses = [
-  { id: 'developers', title: 'Developers', description: 'More adoption, smaller bills. Ecosystem and affordability matter.' },
-  { id: 'enterprise', title: 'Enterprises', description: 'Fewer, larger contracts. Quality, reliability and trust matter.' },
-  { id: 'balanced', title: 'Both markets', description: 'Diversify customers, with less acquisition in either segment.' },
+export const paths = [
+  {
+    id: "licensing",
+    title: "Commercial licensing",
+    description:
+      "Sell a new premium edition and supported commercial package. The existing open model stays free.",
+    offering: "Premium edition + support",
+    advantage: "Earlier direct revenue; own the customer relationship.",
+    tradeoff:
+      "Narrower adoption. Premium terms reduce trust unless ecosystem investment supports the open base.",
+    fit: "Quality + reliability",
+    rates: [1.5, 4, 7],
+    operation: 4,
+  },
+  {
+    id: "partnerships",
+    title: "Strategic partnerships",
+    description:
+      "A cloud platform distributes and delivers your model services.",
+    offering: "Partner-distributed access",
+    advantage: "More reach and 35 extra capacity units.",
+    tradeoff:
+      "The platform takes 28% of billings initially. Dependence can weaken bargaining power.",
+    fit: "Quality + reliability",
+    rates: [1.6, 4, 7],
+    operation: 2,
+  },
+  {
+    id: "services",
+    title: "Value-added services",
+    description:
+      "Keep the model open; sell hosting, tools, integrations and support.",
+    offering: "Hosting + tools + support",
+    advantage: "Strong open adoption and retention as the ecosystem matures.",
+    tradeoff:
+      "Slower paid conversion and 8 extra operating costs. Deliver services yourself.",
+    fit: "Ecosystem + reliability",
+    rates: [1.3, 3.2, 5.5],
+    operation: 8,
+  },
 ] as const;
 export const prices = [
-  { id: 'low', title: 'Low', description: '1.2 per developer · 3 per enterprise. Easier adoption, thinner margins.' },
-  { id: 'standard', title: 'Standard', description: '2 per developer · 5 per enterprise. Balance demand and margin.' },
-  { id: 'premium', title: 'Premium', description: '2.8 per developer · 8 per enterprise. Buyers expect stronger capabilities.' },
+  {
+    id: "low",
+    title: "Accessible",
+    description: "Lower fees, easier adoption, thinner margins.",
+  },
+  {
+    id: "standard",
+    title: "Standard",
+    description: "Balance fees and adoption.",
+  },
+  {
+    id: "premium",
+    title: "Premium",
+    description: "Higher fees; customers expect mature, reliable capabilities.",
+  },
 ] as const;
 export const investments = [
-  { id: 'research', title: 'Research', description: 'Improve the model. Best when buyers compare performance.', gains: [2.4, 0.6, 0.5], cost: INVESTMENT_COST },
-  { id: 'reliability', title: 'Reliability', description: 'Serve more customers and protect retention.', gains: [0.6, 2.4, 0.5], cost: INVESTMENT_COST },
-  { id: 'ecosystem', title: 'Ecosystem', description: 'Build tools and integrations that attract developers.', gains: [0.5, 0.6, 2.4], cost: INVESTMENT_COST },
-  { id: 'save', title: 'Keep cash', description: 'Spend nothing now. Existing capabilities carry forward.', gains: [0, 0, 0], cost: 0 },
+  {
+    id: "research",
+    title: "Research",
+    description: "Differentiate the model for licensing and partners.",
+    gains: [2.4, 0.6, 0.5],
+    cost: 24,
+  },
+  {
+    id: "reliability",
+    title: "Reliability",
+    description: "Improve capacity and retention; reduce delivery costs.",
+    gains: [0.6, 2.4, 0.5],
+    cost: 24,
+  },
+  {
+    id: "ecosystem",
+    title: "Ecosystem",
+    description: "Improve service conversion, adoption and community trust.",
+    gains: [0.5, 0.6, 2.4],
+    cost: 24,
+  },
+  {
+    id: "save",
+    title: "Keep cash",
+    description: "Spend nothing now. Existing capabilities carry forward.",
+    gains: [0, 0, 0],
+    cost: 0,
+  },
 ] as const;
 export const rounds = [
-  { title: 'Launch', briefing: 'Developers seek useful, affordable tools. Enterprises will pay for quality and dependable service. Establish a customer base.' },
-  { title: 'Monetize', briefing: 'Buyers compare paid offers with free alternatives. Yesterday’s collective decisions have changed competition.' },
-  { title: 'Scale', briefing: 'Demand is growing. Winning customers only helps if you can serve them. Earlier investments now matter.' },
-  { title: 'Defend', briefing: 'Buyers know their options. Use your capabilities and the market signals to finish with a solvent business.' },
+  {
+    title: "Launch",
+    briefing:
+      "Your base model is open. Choose what customers will pay for and build supporting capabilities.",
+  },
+  {
+    title: "Monetize",
+    briefing:
+      "Adoption is not revenue. Convert reach into paying accounts without losing community trust.",
+  },
+  {
+    title: "Scale",
+    briefing:
+      "Growth has delivery costs. Partners offer capacity but capture part of your revenue.",
+  },
+  {
+    title: "Defend",
+    briefing:
+      "Free alternatives and platform bargaining test your strategy. What funds continued innovation?",
+  },
 ] as const;
-
-export type Hub = typeof hubs[number]['id'];
-export type Release = typeof releases[number]['id'];
-export type Focus = typeof focuses[number]['id'];
-export type Price = typeof prices[number]['id'];
-export type Investment = typeof investments[number]['id'];
-export type Phase = 'lobby' | 'briefing' | 'planning' | 'resolving' | 'results' | 'finished';
-export type Plan = { focus: Focus; price: Price; investment: Investment; rationale?: string };
-export type Setup = { id: string; name: string; hub: Hub; release: Release };
-export type Signal = { id: string; title: string; cause: string; effect: string };
-export type Mix = { count: number; low: number; premium: number; enterprise: number; developers: number; research: number; reliability: number; ecosystem: number; save: number; open: number; missed: number };
-export type Market = { round: number; signals: Signal[]; developerDemand: number; enterpriseDemand: number; revenueFactor: number; serviceFactor: number; qualityWeight: number; ecosystemWeight: number; openPressure: boolean; mix: Mix | null };
-export type RoundResult = { round: number; openingCash: number; investmentCost: number; revenue: number; operatingCost: number; serviceCost: number; closingCash: number; developers: number; enterprise: number; trust: number; quality: number; reliability: number; ecosystem: number; capacity: number; unserved: number; plan: Plan; missed: boolean; explanations: string[] };
-export type Company = Setup & { cash: number; developers: number; enterprise: number; trust: number; quality: number; reliability: number; ecosystem: number; failed: boolean; history: RoundResult[] };
-export type Snapshot = { companies: Company[]; markets: Market[]; lastMix?: Mix | null };
-export type GameView = { room: string; phase: Phase; round: number; version: number; host: boolean; players: (Company & { setupComplete: boolean })[]; me: (Company & { plan: Plan | null; setupComplete: boolean }) | null; ready: number; submitted: number; active: number; market: Market; nextMarket: Market | null; mix: Mix | null; rulesVersion: number };
-
-const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+export type Hub = (typeof hubs)[number]["id"];
+export type Path = (typeof paths)[number]["id"];
+export type Price = (typeof prices)[number]["id"];
+export type Investment = (typeof investments)[number]["id"];
+export type Phase =
+  | "lobby"
+  | "briefing"
+  | "planning"
+  | "resolving"
+  | "results"
+  | "finished";
+export type Plan = {
+  path: Path;
+  price: Price;
+  investment: Investment;
+  rationale?: string;
+};
+export type Setup = { id: string; name: string; hub: Hub };
+export type Signal = {
+  id: string;
+  title: string;
+  cause: string;
+  effect: string;
+};
+export type Mix = {
+  count: number;
+  low: number;
+  premium: number;
+  licensing: number;
+  partnerships: number;
+  services: number;
+  research: number;
+  reliability: number;
+  ecosystem: number;
+  save: number;
+  missed: number;
+};
+export type Market = {
+  round: number;
+  signals: Signal[];
+  demand: number;
+  revenueFactor: number;
+  serviceFactor: number;
+  qualityWeight: number;
+  ecosystemWeight: number;
+  licensingFactor: number;
+  servicesFactor: number;
+  partnerShare: number;
+  mix: Mix | null;
+};
+export type RoundResult = {
+  round: number;
+  openingCash: number;
+  investmentCost: number;
+  transitionCost: number;
+  grossRevenue: number;
+  partnerCut: number;
+  revenue: number;
+  operatingCost: number;
+  serviceCost: number;
+  operatingSurplus: number;
+  closingCash: number;
+  adoption: number;
+  developers: number;
+  enterprise: number;
+  trust: number;
+  dependence: number;
+  quality: number;
+  reliability: number;
+  ecosystem: number;
+  capacity: number;
+  unserved: number;
+  conversion: number;
+  tenure: number;
+  plan: Plan;
+  missed: boolean;
+  takeaway: string;
+  explanations: string[];
+};
+export type Company = Setup & {
+  cash: number;
+  adoption: number;
+  developers: number;
+  enterprise: number;
+  trust: number;
+  dependence: number;
+  quality: number;
+  reliability: number;
+  ecosystem: number;
+  path: Path | null;
+  tenure: number;
+  failed: boolean;
+  history: RoundResult[];
+};
+export type Snapshot = {
+  companies: Company[];
+  markets: Market[];
+  lastMix?: Mix | null;
+};
+export type GameView = {
+  room: string;
+  phase: Phase;
+  round: number;
+  version: number;
+  host: boolean;
+  players: (Company & { setupComplete: boolean })[];
+  me: (Company & { plan: Plan | null; setupComplete: boolean }) | null;
+  ready: number;
+  submitted: number;
+  active: number;
+  market: Market;
+  nextMarket: Market | null;
+  mix: Mix | null;
+  rulesVersion: number;
+};
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, v));
 const money = (v: number) => Math.round(v * 10) / 10;
-const capability = (v: number) => money(clamp(v, 0, 10));
-export function isSetup(hub: unknown, release: unknown): hub is Hub {
-  return hubs.some(h => h.id === hub) && releases.some(r => r.id === release);
+const cap = (v: number) => money(clamp(v, 0, 10));
+export function isSetup(hub: unknown): hub is Hub {
+  return hubs.some((h) => h.id === hub);
 }
 export function isPlan(value: unknown): value is Plan {
-  if (!value || typeof value !== 'object') return false;
+  if (!value || typeof value !== "object") return false;
   const p = value as Plan;
-  return focuses.some(f => f.id === p.focus) && prices.some(x => x.id === p.price) && investments.some(i => i.id === p.investment)
-    && (p.rationale === undefined || (typeof p.rationale === 'string' && p.rationale.length <= 160));
+  return (
+    paths.some((x) => x.id === p.path) &&
+    prices.some((x) => x.id === p.price) &&
+    investments.some((x) => x.id === p.investment) &&
+    (p.rationale === undefined ||
+      (typeof p.rationale === "string" && p.rationale.length <= 160))
+  );
 }
-export function initialCompany(setup: Setup): Company {
-  return { id: setup.id, name: setup.name, hub: setup.hub, release: setup.release, cash: STARTING_CASH, developers: 6, enterprise: 2, trust: setup.hub === 'enterprise' ? 65 : 55,
-    quality: setup.hub === 'research' ? 4 : 2, reliability: 2, ecosystem: setup.hub === 'developer' ? 4 : 2, failed: false, history: [] };
+export function initialCompany(s: Setup): Company {
+  return {
+    id: s.id,
+    name: s.name,
+    hub: s.hub,
+    cash: 150,
+    adoption: 20,
+    developers: 0,
+    enterprise: 0,
+    trust: s.hub === "enterprise" ? 65 : 55,
+    dependence: 0,
+    quality: s.hub === "research" ? 4 : 2,
+    reliability: 2,
+    ecosystem: s.hub === "developer" ? 4 : 2,
+    path: null,
+    tenure: 0,
+    failed: false,
+    history: [],
+  };
 }
-export function canAfford(company: Company, investment: Investment) {
-  return !company.failed && (investment === 'save' || company.cash >= INVESTMENT_COST + OPERATING_RESERVE);
+export function transitionCost(c: Company, path: Path) {
+  return c.path && c.path !== path ? SWITCH_COST : 0;
 }
-export function fallbackPlan(company: Company): Plan {
-  const last = company.history.at(-1)?.plan;
-  return { focus: last?.focus ?? 'balanced', price: last?.price ?? 'standard', investment: 'save' };
+export function canAfford(
+  c: Company,
+  investment: Investment,
+  path: Path = c.path ?? "services",
+) {
+  const cost = (investment === "save" ? 0 : 24) + transitionCost(c, path);
+  return !c.failed && (cost === 0 || c.cash - cost >= 20);
+}
+export function fallbackPlan(c: Company): Plan {
+  const p = c.history.at(-1)?.plan;
+  return {
+    path: p?.path ?? "services",
+    price: p?.price ?? "standard",
+    investment: "save",
+  };
 }
 export function initialMarket(round = 0): Market {
-  return { round, signals: [], developerDemand: [1, 1.08, 1.2, 1.25][round], enterpriseDemand: [1, 1.1, 1.15, 1.25][round],
-    revenueFactor: 1, serviceFactor: 1, qualityWeight: 1, ecosystemWeight: 1, openPressure: false, mix: null };
+  return {
+    round,
+    signals: [],
+    demand: [1, 1.08, 1.2, 1.25][round],
+    revenueFactor: 1,
+    serviceFactor: 1,
+    qualityWeight: 1,
+    ecosystemWeight: 1,
+    licensingFactor: 1,
+    servicesFactor: 1,
+    partnerShare: 0.28,
+    mix: null,
+  };
 }
-
-// Every pressure uses the previous closed round, normalized by active company count.
-// These conditions are published before the next plan; no language model or randomness.
-export function nextMarket(companies: Company[], submitted: Record<string, Plan>, round: number): Market {
-  const market = initialMarket(round);
-  const active = companies.filter(c => !c.failed);
-  if (!active.length) return market;
-  const mix: Mix = { count: active.length, low: 0, premium: 0, enterprise: 0, developers: 0, research: 0, reliability: 0, ecosystem: 0, save: 0, open: 0, missed: 0 };
+export function nextMarket(
+  companies: Company[],
+  submitted: Record<string, Plan>,
+  round: number,
+): Market {
+  const m = initialMarket(round),
+    active = companies.filter((c) => !c.failed);
+  if (!active.length) return m;
+  const mix: Mix = {
+    count: active.length,
+    low: 0,
+    premium: 0,
+    licensing: 0,
+    partnerships: 0,
+    services: 0,
+    research: 0,
+    reliability: 0,
+    ecosystem: 0,
+    save: 0,
+    missed: 0,
+  };
   for (const c of active) {
     const p = submitted[c.id] ?? fallbackPlan(c);
-    if (!submitted[c.id]) mix.missed++;
-    if (p.price === 'low') mix.low++;
-    if (p.price === 'premium') mix.premium++;
-    if (p.focus !== 'balanced') mix[p.focus]++;
+    mix[p.path]++;
     mix[p.investment]++;
-    if (c.release !== 'closed') mix.open++;
+    if (p.price === "low") mix.low++;
+    if (p.price === "premium") mix.premium++;
+    if (!submitted[c.id]) mix.missed++;
   }
-  market.mix = mix;
+  m.mix = mix;
   const share = (n: number) => n / mix.count;
-  const percent = (n: number) => `${Math.round(share(n) * 100)}%`;
-  const add = (id: string, title: string, cause: string, effect: string) => market.signals.push({ id, title, cause, effect });
+  const add = (
+    id: string,
+    title: string,
+    n: number,
+    t: number,
+    effect: string,
+  ) =>
+    m.signals.push({
+      id,
+      title,
+      cause: `${Math.round(share(n) * 100)}% of active companies; threshold ${t}%.`,
+      effect,
+    });
   if (share(mix.low) >= 0.5) {
-    market.revenueFactor *= 0.85;
-    add('price-war', 'Price competition', `${percent(mix.low)} chose low pricing.`, 'Revenue per customer falls 15%. New acquisition falls 60% for premium offers and 15% for standard offers.');
+    m.revenueFactor = 0.85;
+    add(
+      "price-war",
+      "Price competition",
+      mix.low,
+      50,
+      "Account revenue falls 15%; premium new demand falls 35%, standard 10%.",
+    );
   }
-  if (share(mix.enterprise) >= 0.6) {
-    market.enterpriseDemand *= 0.6;
-    add('enterprise-crowding', 'Enterprise crowding', `${percent(mix.enterprise)} focused on enterprises.`, 'New enterprise acquisition is 40% lower this round. Existing contracts are not directly reduced.');
+  if (share(mix.licensing) >= 0.6) {
+    m.licensingFactor = 0.65;
+    add(
+      "free-alternatives",
+      "Free alternatives spread",
+      mix.licensing,
+      60,
+      "New licensing accounts fall 35%. Quality helps differentiate the package.",
+    );
   }
-  if (share(mix.developers) >= 0.6) {
-    market.developerDemand *= 0.6;
-    add('developer-crowding', 'Developer crowding', `${percent(mix.developers)} focused on developers.`, 'New developer acquisition is 40% lower this round. Existing customers are not directly reduced.');
+  if (share(mix.partnerships) >= 0.6) {
+    m.partnerShare = 0.4;
+    add(
+      "platform-power",
+      "Platforms gain bargaining power",
+      mix.partnerships,
+      60,
+      "Partners take 40% of gross billings plus up to 10 percentage points from dependence.",
+    );
+  }
+  if (share(mix.services) >= 0.6) {
+    m.servicesFactor = 0.8;
+    add(
+      "hosting-crowding",
+      "Hosting becomes crowded",
+      mix.services,
+      60,
+      "Service revenue falls up to 20%; ecosystem maturity cushions the discount.",
+    );
   }
   if (share(mix.research) >= 0.5) {
-    market.qualityWeight = 2;
-    add('benchmark-race', 'A benchmark race', `${percent(mix.research)} invested in research.`, 'Quality contributes 100% more to new-customer attraction. Low-quality offers fall behind.');
-  }
-  const averageReliability = active.reduce((sum, c) => sum + c.reliability, 0) / active.length;
-  if (averageReliability < 4 && share(mix.reliability) < 0.25) {
-    market.serviceFactor = 1.2;
-    add('capacity-squeeze', 'Capacity squeeze', `Average reliability is ${money(averageReliability)}/10; ${percent(mix.reliability)} invested in reliability.`, 'Service costs rise 20%. Reliability increases capacity and reduces cost per customer.');
-  }
-  if (share(mix.open) >= 0.6) {
-    market.openPressure = true;
-    add('open-standard', 'Open becomes standard', `${percent(mix.open)} run open or open-core releases.`, 'Closed models attract 15% fewer new developers and earn 18% less revenue per customer. Open models get a 10% developer adoption boost.');
+    m.qualityWeight = 1.5;
+    add(
+      "benchmark-race",
+      "The quality bar rises",
+      mix.research,
+      50,
+      "Quality contributes 50% more to paid-account demand.",
+    );
   }
   if (share(mix.ecosystem) >= 0.5) {
-    market.ecosystemWeight = 1.5;
-    add('integration-boom', 'An integration boom', `${percent(mix.ecosystem)} invested in ecosystems.`, 'Ecosystem strength contributes 50% more to developer acquisition.');
+    m.ecosystemWeight = 1.5;
+    add(
+      "integration-boom",
+      "Integration demand grows",
+      mix.ecosystem,
+      50,
+      "Ecosystem contributes 50% more to adoption and service conversion.",
+    );
+  }
+  const reliability =
+    active.reduce((s, c) => s + c.reliability, 0) / active.length;
+  if (reliability < 4 && share(mix.reliability) < 0.25) {
+    m.serviceFactor = 1.2;
+    m.signals.push({
+      id: "capacity-squeeze",
+      title: "Delivery costs rise",
+      cause: `Average reliability ${money(reliability)}/10, below 4; fewer than 25% invested in reliability.`,
+      effect: "Delivery costs rise 20%, including partner-delivered accounts.",
+    });
   }
   if (share(mix.premium) >= 0.6) {
-    market.developerDemand *= 1.12;
-    add('affordability-gap', 'An affordability gap', `${percent(mix.premium)} chose premium prices.`, 'New developer demand grows 12%. Lower-priced offers are better positioned to win it.');
+    m.demand *= 1.12;
+    add(
+      "affordability-gap",
+      "An affordable-offer opportunity",
+      mix.premium,
+      60,
+      "New demand grows 12%; accessible offers attract more of it.",
+    );
   }
   if (share(mix.save) >= 0.6) {
-    market.qualityWeight = Math.max(market.qualityWeight, 1.25);
-    add('outside-rival', 'An outside rival improves', `${percent(mix.save)} preserved cash instead of investing.`, 'Quality contributes 25% more to customer attraction. Existing research can still differentiate an offer.');
+    m.qualityWeight = Math.max(m.qualityWeight, 1.25);
+    add(
+      "outside-rival",
+      "An outside rival improves",
+      mix.save,
+      60,
+      "Quality contributes at least 25% more to paid-account demand.",
+    );
   }
-  if (!market.signals.length) add('steady', 'A diverse market', 'No strategy crossed a market-pressure threshold.', 'Competition is balanced. Normal demand growth applies.');
-  return market;
+  if (!m.signals.length)
+    m.signals.push({
+      id: "steady",
+      title: "A diverse market",
+      cause: "No pressure threshold was crossed.",
+      effect: "Normal demand growth applies.",
+    });
+  return m;
 }
-
-export function resolveCompany(company: Company, submitted: Plan | undefined, market: Market): Company {
-  if (company.failed) return company;
-  const plan = submitted ?? fallbackPlan(company);
-  if (!isPlan(plan) || !canAfford(company, plan.investment)) throw new Error('Invalid or unaffordable plan');
-  const investment = investments.find(i => i.id === plan.investment)!;
-  const quality = capability(company.quality + investment.gains[0] * (1 - company.quality / 12));
-  const reliability = capability(company.reliability + investment.gains[1] * (1 - company.reliability / 12));
-  const ecosystem = capability(company.ecosystem + investment.gains[2] * (1 - company.ecosystem / 12));
-  const trustFactor = 0.65 + company.trust / 150;
-  const focusDev = plan.focus === 'developers' ? 1.4 : plan.focus === 'enterprise' ? 0.35 : 0.85;
-  const focusEnt = plan.focus === 'enterprise' ? 1.4 : plan.focus === 'developers' ? 0.35 : 0.85;
-  const enterprisePremiumFit = clamp((quality + reliability - 2) / 9, 0.25, 1.1);
-  const developerPremiumFit = clamp((quality + ecosystem - 2) / 9, 0.25, 1.1);
-  const premiumFit = plan.focus === 'developers' ? developerPremiumFit : plan.focus === 'enterprise' ? enterprisePremiumFit : (developerPremiumFit + enterprisePremiumFit) / 2;
-  const priceCompetition = market.revenueFactor < 1 ? (plan.price === 'premium' ? 0.4 : plan.price === 'standard' ? 0.85 : 1) : 1;
-  const devPriceDemand = plan.price === 'low' ? 1.4 : plan.price === 'standard' ? 1 : 0.75 * developerPremiumFit;
-  const entPriceDemand = plan.price === 'low' ? 1.15 : plan.price === 'standard' ? 1 : 0.8 * enterprisePremiumFit;
-  const releaseDev = company.release === 'open' ? 1.25 : company.release === 'closed' ? 0.8 : 1.05;
-  const pressure = market.openPressure ? (company.release === 'closed' ? 0.85 : company.release === 'open' ? 1.1 : 1) : 1;
-  const devAttraction = clamp(0.55 + ecosystem * 0.1 * market.ecosystemWeight + (quality - 3) * 0.1 * market.qualityWeight, 0.25, 2);
-  const entAttraction = clamp(0.45 + (quality - 3) * 0.09 * market.qualityWeight + reliability * 0.09, 0.2, 2);
-  const acquiredDev = 18 * market.developerDemand * focusDev * devPriceDemand * priceCompetition * releaseDev * pressure * devAttraction * trustFactor * (company.hub === 'developer' ? 1.1 : 1);
-  const acquiredEnt = 6 * market.enterpriseDemand * focusEnt * entPriceDemand * priceCompetition * entAttraction * trustFactor * (company.hub === 'enterprise' ? 1.15 : 1);
-  const retention = clamp(0.62 + company.trust / 400 + reliability / 80 - (plan.price === 'premium' && premiumFit < 0.65 ? 0.12 : 0), 0.45, 0.95);
-  const wantedDev = Math.round(company.developers * retention + acquiredDev);
-  const wantedEnt = Math.round(company.enterprise * retention + acquiredEnt);
-  const capacity = Math.round(44 + reliability * 4);
-  const load = wantedDev + wantedEnt * 3;
-  const served = load > capacity ? capacity / load : 1;
-  const developers = Math.floor(wantedDev * served);
-  const enterprise = Math.floor(wantedEnt * served);
-  const unserved = wantedDev + wantedEnt - developers - enterprise;
-  const devRate = plan.price === 'low' ? 1.2 : plan.price === 'standard' ? 2 : 2.8;
-  const entRate = plan.price === 'low' ? 3 : plan.price === 'standard' ? 5 : 8;
-  const paidDev = company.release === 'open' ? 0.72 : company.release === 'core' ? 0.88 : 1;
-  const paidEnt = company.release === 'open' ? 0.88 : company.release === 'core' ? 0.94 : 1;
-  const revenue = money((developers * devRate * paidDev + enterprise * entRate * paidEnt) * market.revenueFactor * (market.openPressure && company.release === 'closed' ? 0.82 : 1));
-  const operatingCost = hubs.find(h => h.id === company.hub)!.operatingCost + (company.release === 'core' ? 3 : 0);
-  const serviceCost = money((developers * 0.32 + enterprise * 1.1) * market.serviceFactor * (1 - reliability * 0.035));
-  const cash = money(company.cash - investment.cost + revenue - operatingCost - serviceCost);
-  const trust = Math.round(clamp(company.trust + (served >= 0.95 ? 4 : -Math.ceil((1 - served) * 24)) + (reliability >= 5 ? 2 : 0) - (plan.price === 'premium' && premiumFit < 0.65 ? 5 : 0), 0, 100));
-  const explanations: string[] = [];
-  if (!submitted) explanations.push('No plan submitted: previous focus and price continued, with no new investment. Round one defaults to both markets and standard pricing.');
-  if (investment.cost) explanations.push(`${investment.title} investment cost ${investment.cost} cash. Capabilities carry forward, with diminishing gains near 10.`);
-  else explanations.push('You preserved cash. Your existing capabilities still determine acquisition and capacity.');
-  explanations.push(`${developers} developers and ${enterprise} enterprise customers produced ${revenue} revenue; operations and service cost ${money(operatingCost + serviceCost)}.`);
-  if (unserved) explanations.push(`${unserved} potential customers could not be served. Capacity is ${capacity} units; each enterprise uses 3. Lost service reduced trust.`);
-  else explanations.push(`Your ${capacity}-unit capacity covered demand. Dependable service improved trust.`);
-  if (plan.price === 'premium' && premiumFit < 0.65) explanations.push('Premium pricing exceeded the capabilities your target buyers expect. Acquisition, retention and trust were reduced.');
-  if (market.revenueFactor < 1) explanations.push('Last round’s widespread price cuts reduced this round’s revenue per customer by 15%.');
-  if (market.openPressure && company.release === 'closed') explanations.push('Open alternatives reduced your new developer acquisition by 15% and revenue per customer by 18%.');
-  const result: RoundResult = { round: market.round, openingCash: company.cash, investmentCost: investment.cost, revenue, operatingCost, serviceCost, closingCash: cash,
-    developers, enterprise, trust, quality, reliability, ecosystem, capacity, unserved, plan, missed: !submitted, explanations };
-  return { ...company, cash, developers, enterprise, trust, quality, reliability, ecosystem, failed: cash <= 0, history: [...company.history, result] };
+export function resolveCompany(
+  c: Company,
+  submitted: Plan | undefined,
+  m: Market,
+): Company {
+  if (c.failed) return c;
+  const p = submitted ?? fallbackPlan(c);
+  if (!isPlan(p) || !canAfford(c, p.investment, p.path))
+    throw Error("Invalid or unaffordable plan");
+  const path = paths.find((x) => x.id === p.path)!,
+    invest = investments.find((x) => x.id === p.investment)!;
+  const switching = transitionCost(c, p.path),
+    tenure = c.path === p.path ? c.tenure + 1 : 1;
+  const quality = cap(c.quality + invest.gains[0] * (1 - c.quality / 12)),
+    reliability = cap(
+      c.reliability + invest.gains[1] * (1 - c.reliability / 12),
+    ),
+    ecosystem = cap(c.ecosystem + invest.gains[2] * (1 - c.ecosystem / 12));
+  const fit = clamp(
+    ((p.path === "services" ? ecosystem : quality) + reliability) / 10,
+    0.3,
+    1.25,
+  );
+  const priceDemand =
+    p.price === "low" ? 1.3 : p.price === "premium" ? 0.65 * fit : 1;
+  const competition =
+    m.revenueFactor < 1
+      ? p.price === "premium"
+        ? 0.65
+        : p.price === "standard"
+          ? 0.9
+          : 1
+      : 1;
+  const communityGrowth =
+    22 *
+    m.demand *
+    (p.path === "licensing" ? 0.85 : p.path === "partnerships" ? 1.25 : 1.3) *
+    (1 + ecosystem * 0.07 * m.ecosystemWeight) *
+    (c.trust / 100 + 0.45) *
+    (c.hub === "developer" ? 1.1 : 1);
+  const adoption = Math.round(c.adoption * 0.94 + communityGrowth);
+  const conversion = clamp(
+    p.path === "services"
+      ? 0.12 +
+          ecosystem * 0.025 * m.ecosystemWeight +
+          Math.min(tenure - 1, 3) * 0.045
+      : p.path === "licensing"
+        ? 0.48
+        : 0.42,
+    0.1,
+    0.8,
+  );
+  const attraction = clamp(
+    0.55 + quality * 0.09 * m.qualityWeight + reliability * 0.035,
+    0.4,
+    2,
+  );
+  const newAccounts =
+    communityGrowth *
+    conversion *
+    priceDemand *
+    competition *
+    attraction *
+    (p.path === "licensing" ? m.licensingFactor : 1) *
+    (switching ? 0.8 : 1);
+  // A path transition migrates existing accounts; it never resets the company.
+  const retention =
+    clamp(
+      0.65 +
+        c.trust / 500 +
+        reliability / 80 +
+        (p.path === "services" ? ecosystem * 0.012 : 0) -
+        (p.price === "premium" && fit < 0.7 ? 0.12 : 0),
+      0.45,
+      0.96,
+    ) * (switching ? 0.8 : 1);
+  const devFraction =
+    p.path === "licensing" ? 0.3 : p.path === "partnerships" ? 0.6 : 0.75;
+  const wantDev = Math.round(
+      c.developers * retention + newAccounts * devFraction,
+    ),
+    wantEnt = Math.round(
+      c.enterprise * retention +
+        ((newAccounts * (1 - devFraction)) / 2) *
+          (c.hub === "enterprise" ? 1.15 : 1),
+    );
+  const capacity = Math.round(
+      36 + reliability * 5 + (p.path === "partnerships" ? 35 : 0),
+    ),
+    ratio = Math.min(1, capacity / Math.max(1, wantDev + wantEnt * 3));
+  const developers = Math.floor(wantDev * ratio),
+    enterprise = Math.floor(wantEnt * ratio),
+    unserved = wantDev + wantEnt - developers - enterprise;
+  const dependence = Math.round(
+    clamp(c.dependence + (p.path === "partnerships" ? 22 : -18), 0, 100),
+  );
+  const rate =
+    path.rates[p.price === "low" ? 0 : p.price === "standard" ? 1 : 2];
+  const servicesDiscount =
+    p.path === "services"
+      ? 1 - (1 - m.servicesFactor) * (1 - ecosystem / 10)
+      : 1;
+  const grossRevenue = money(
+    (developers + enterprise * 3) * rate * m.revenueFactor * servicesDiscount,
+  );
+  const partnerRate =
+    p.path === "partnerships"
+      ? Math.min(0.5, m.partnerShare + c.dependence * 0.001)
+      : 0;
+  const partnerCut = money(grossRevenue * partnerRate),
+    revenue = money(grossRevenue - partnerCut);
+  const operatingCost =
+    hubs.find((h) => h.id === c.hub)!.operatingCost + path.operation;
+  const serviceCost = money(
+    (developers * 0.42 + enterprise * 1.25) *
+      m.serviceFactor *
+      (1 - reliability * 0.035) *
+      (p.path === "partnerships" ? 0.75 : 1),
+  );
+  const operatingSurplus = money(revenue - operatingCost - serviceCost),
+    cash = money(c.cash - invest.cost - switching + operatingSurplus);
+  const restrictive =
+      p.path === "licensing" &&
+      p.price === "premium" &&
+      p.investment !== "ecosystem",
+    premiumMismatch = p.price === "premium" && fit < 0.7;
+  const serviceTrust = ratio >= 0.95 ? 3 : -Math.ceil((1 - ratio) * 24);
+  const trust = Math.round(
+    clamp(
+      c.trust +
+        serviceTrust +
+        (p.investment === "ecosystem" ? 4 : 0) -
+        (restrictive ? 6 : 0) -
+        (premiumMismatch ? 5 : 0),
+      0,
+      100,
+    ),
+  );
+  const takeaway = unserved
+    ? "Demand exceeded capacity. Growth cost community trust."
+    : p.path === "partnerships"
+      ? `The platform delivered reach, but kept ${partnerCut} of ${grossRevenue} gross billings.`
+      : p.path === "services"
+        ? `${Math.round(conversion * 100)}% of new adoption entered paid-account demand. Ecosystem and time on this path matter.`
+        : "Your premium package captured revenue directly. Open adoption alone did not pay the bills.";
+  const explanations = [
+    `${adoption} community adopters are not automatically paying accounts. Served: ${developers} developer and ${enterprise} enterprise accounts.`,
+    `Paid fee ${rate}; enterprises count as three units. Gross billings ${grossRevenue}, partner share ${partnerCut}, retained revenue ${revenue}.`,
+    `Operations ${operatingCost}, delivery ${serviceCost}; surplus ${operatingSurplus}, before investment ${invest.cost} and transition ${switching}.`,
+    `Capacity ${capacity} units; enterprise accounts use three. Unserved accounts: ${unserved}.`,
+    `Trust ${c.trust} → ${trust}: delivery ${serviceTrust}${p.investment === "ecosystem" ? ", ecosystem +4" : ""}${restrictive ? ", restrictive premium terms −6" : ""}${premiumMismatch ? ", capability mismatch −5" : ""}.`,
+  ];
+  if (switching)
+    explanations.push(
+      "Path transition: 12 cash, acquisition ×0.8 and account retention ×0.8. Capabilities persist; path tenure restarts.",
+    );
+  if (!submitted)
+    explanations.push(
+      "Missed plan: previous path and price, no investment. First-round default: services, standard price.",
+    );
+  if (p.path === "partnerships")
+    explanations.push(
+      `Partner share ${Math.round(partnerRate * 100)}%: market base ${Math.round(m.partnerShare * 100)}% plus opening dependence/10 percentage points, capped at 50%. Dependence ${c.dependence} → ${dependence}.`,
+    );
+  if (p.path === "services")
+    explanations.push(
+      `Conversion ${Math.round(conversion * 100)}% after ${tenure} round(s) on this path. Hosting discount ${Math.round((1 - servicesDiscount) * 100)}%. Timing is compressed for classroom play.`,
+    );
+  const result: RoundResult = {
+    round: m.round,
+    openingCash: c.cash,
+    investmentCost: invest.cost,
+    transitionCost: switching,
+    grossRevenue,
+    partnerCut,
+    revenue,
+    operatingCost,
+    serviceCost,
+    operatingSurplus,
+    closingCash: cash,
+    adoption,
+    developers,
+    enterprise,
+    trust,
+    dependence,
+    quality,
+    reliability,
+    ecosystem,
+    capacity,
+    unserved,
+    conversion,
+    tenure,
+    plan: p,
+    missed: !submitted,
+    takeaway,
+    explanations,
+  };
+  return {
+    ...c,
+    cash,
+    adoption,
+    developers,
+    enterprise,
+    trust,
+    dependence,
+    quality,
+    reliability,
+    ecosystem,
+    path: p.path,
+    tenure,
+    failed: cash <= 0,
+    history: [...c.history, result],
+  };
 }
-
-export function closeRound(snapshot: Snapshot, plans: Record<string, Plan>, round: number): Snapshot {
-  const companies = snapshot.companies.map(c => resolveCompany(c, plans[c.id], snapshot.markets[round]));
-  const markets = [...snapshot.markets];
-  const next = nextMarket(snapshot.companies, plans, Math.min(round + 1, 3));
-  if (round < rounds.length - 1) {
-    // Use the capabilities at the start of the closed round and its actual plans.
-    markets.push(next);
-  }
+export function closeRound(
+  s: Snapshot,
+  plans: Record<string, Plan>,
+  round: number,
+): Snapshot {
+  const companies = s.companies.map((c) =>
+      resolveCompany(c, plans[c.id], s.markets[round]),
+    ),
+    markets = [...s.markets],
+    next = nextMarket(s.companies, plans, Math.min(round + 1, 3));
+  if (round < 3) markets.push(next);
   return { companies, markets, lastMix: next.mix };
 }
-export function rankCompanies(companies: Company[]): Company[] {
-  return [...companies].sort((a, b) => Number(a.failed) - Number(b.failed) || b.cash - a.cash || a.name.localeCompare(b.name));
+export function rankCompanies(companies: Company[]) {
+  return [...companies].sort(
+    (a, b) =>
+      Number(a.failed) - Number(b.failed) ||
+      b.cash - a.cash ||
+      a.name.localeCompare(b.name),
+  );
 }

@@ -1,29 +1,17 @@
 # DeepSeek classroom game: implemented scope
 
-The user approved implementation of a rule-driven adaptive simulation, without AI. Target classroom time is 10–15 minutes including discussion. This replaces the earlier single-card decision game.
+Version 3 implements IMPLEMENTATION_PLAN.md. The user approved the full strategy and visual redesign and waived compatibility for existing rooms.
 
-## Implemented decisions
+Purpose: close the DeepSeek presentation by applying the dilemma of funding innovation while preserving open adoption and community trust. Players run fictional open-model companies and defend a recommendation after four rounds.
 
-- Setup: join with a name first → ecosystem cards with advantages and trade-offs → release-model cards → starting-company summary → confirm ready. Setup drafts restore across refresh; the presenter can start only after all founders confirm.
-- Four rounds: customer focus, price, investment profile (research / reliability / ecosystem / keep cash).
-- Draft → review → confirm. Drafts restore after refresh; submitted plans are private and server-authoritative.
-- Capabilities and customer relationships carry forward; results explain cash and operating trade-offs.
-- Nine collective-choice conditions alter the next market, published before students decide. Numeric rules are in RULES.md.
-- Highest ending cash among solvent companies wins, with cash ties sharing rank. Show customers, trust and capabilities for discussion.
-- Missed decisions continue the previous focus/price without investing. First-round default: balanced, standard, no investment.
+Setup: company name → starting ecosystem → summary → ready. Three decisions per round: commercial licensing / strategic partnerships / value-added services, price, investment. Capabilities persist; switching has disclosed costs and migration effects. Open adoption is separate from paying accounts. Partnerships show gross billings and the platform cut; services mature over time. All mechanics are deterministic and server-authoritative.
 
-## Classroom flow
+Visuals: illustrated strategy cards, company relationship map, brief one-time result animation and cash reconciliation, five-point cash-history chart, final company profile, presenter comparison and class strategy-share bars. Phone layouts, keyboard focus, text equivalents and reduced motion are supported. SVG, Lucide icons and CSS only; no AI services or generated assets.
 
-Joining/setup 1–2 minutes → four cycles of market briefing (about 15 seconds), planning (75 seconds suggested) and result explanation (20–30 seconds) → final discussion 2–3 minutes.
+Classroom timing: about 2 minutes joining/setup, 7–8 minutes for four manual presenter-controlled rounds, 2–3 minutes discussion. Highest ending cash among solvent firms wins; profiles make other strategic outcomes visible. Final prompt asks students to recommend a path for DeepSeek and identify the sacrifice.
 
-Presenter controls lobby → briefing → planning → results → next briefing → finished. Timer expiry never submits or advances automatically. Interrupted result calculation can be resumed; closed plans cannot change.
+Existing D1 tables suffice: extended financial state is in versioned JSON snapshots. Legacy release column is unused and retains an open value for new founders. No new migration is needed beyond 0000–0002. Session and draft namespaces are version 3. Older rooms return an actionable 410 message; create fresh rooms.
 
-## Validation and limits
+Validation: model tests; 189 constant/representative switching policies across seven class compositions; 30-player full-round API smoke and closure race; TypeScript, scoped lint and production build; browser setup, draft restoration, decisions, results and responsive screens. Balance checks are a bounded search, not proof that no dominant strategy exists. Physical-phone rehearsal and actual classroom timing remain human checks.
 
-Model tests cover startup fairness, reserve enforcement, adaptive conditions, privacy, deterministic results, capability persistence, service capacity, cash reconciliation, missed plans, bankruptcy and ranking. API smoke tests exercise 30 founders through four rounds, including a close/submit race. The balance sweep compares 324 constant strategies in five classroom compositions; it deliberately checks that different markets have different strongest plans and that investment and cash preservation both have useful contexts.
-
-Rehearse the final deployed version with two physical phones and a presenter laptop. This is a teaching model, not a real-world AI economic forecast. Short-horizon cash ranking can favor different strategies than long-term value; discuss that limitation.
-
-## Deferred
-
-AI narration or event generation is excluded. Also defer borrowing, equity fundraising, manual budget sliders, cloud-contract negotiation, changing hubs/releases, and a fixed customer pool split among class competitors. The game is publicly hosted through Sites at https://deepseek-market-game.lukas727.chatgpt.site. GitHub stores its source.
+Excluded: AI-generated events/assets, borrowing, fundraising, budget sliders, contract negotiation, detailed geography, finite class customer pool and extra rounds. The case PDF and copied case content are not published.

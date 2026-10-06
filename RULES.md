@@ -1,63 +1,81 @@
-# Simulation rules (version 2)
+# Classroom rules: version 3
 
-All values are fictional teaching units. The model is deterministic and contains no AI calls or random market events. The implementation in `lib/simulation.ts` is the source of truth.
+All numbers are fictional teaching assumptions. The game is deterministic. Adoption, account demand, delivery and money are calculated on the server. No AI, generated assets, hidden same-round event, or random market event is used. Case text and graphics are not included.
 
-## Setup
+## Setup and timing
 
-Every company starts with 150 cash, 6 developers, 2 enterprises, reliability 2, quality 2, ecosystem 2 and trust 55. A research hub changes starting quality to 4 and costs 18 per round; an enterprise hub changes trust to 65, gives 15% more new enterprise acquisition and costs 14; a developer hub changes ecosystem to 4, gives 10% more developer acquisition and costs 10. All hubs can serve both segments.
+Name → ecosystem → review → ready. The base model stays open for every company. Every founder starts with 150 cash, 20 community adopters, zero paying accounts, reliability 2/10 and dependence 0/100.
 
-Open releases multiply developer acquisition by 1.25 and earn 72% of developer list revenue / 88% of enterprise list revenue. Closed releases multiply developer acquisition by 0.8 and earn full list revenue. Open core multiplies developer acquisition by 1.05, earns 88% / 94% of list revenue, and adds 3 operating cash per round. Revenue represents paid conversion across the active customer base; free model adoption and paid service conversion differ.
+| Ecosystem | Quality | Ecosystem capability | Community trust | Base operating cost | Acquisition bonus |
+| --- | --- | --- | --- | --- | --- |
+| Research | 4 | 2 | 55 | 18 | None |
+| Enterprise | 2 | 2 | 65 | 14 | New enterprise accounts ×1.15 |
+| Developer | 2 | 4 | 55 | 10 | Community growth ×1.10 |
 
-## Plans
+Four rounds: Launch, Monetize, Scale, Defend. Suggested 75-second planning time, manually closed by the presenter. Target total: 2 minutes setup, 7–8 minutes rounds, 2–3 minutes discussion. Actual timing needs a class rehearsal.
 
-Customer focus weights new acquisition: focused segment ×1.4, other segment ×0.35; balanced ×0.85 for each.
+## Decisions and paid offerings
 
-| Price | Developer list revenue | Enterprise list revenue | New demand |
-| --- | --- | --- | --- |
-| Low | 1.2 | 3 | Developer ×1.4; enterprise ×1.15 |
-| Standard | 2 | 5 | Baseline |
-| Premium | 2.8 | 8 | Developer ×0.75 × fit; enterprise ×0.8 × fit |
+| Path | Paid product | Accessible / standard / premium unit fee | Extra operating cost | Delivery and adoption |
+| --- | --- | --- | --- | --- |
+| Licensing | New premium edition and supported commercial package | 1.5 / 4 / 7 | 4 | Lower community growth; direct revenue |
+| Partnerships | Partner-distributed access | 1.6 / 4 / 7 | 2 | Extra 35 capacity; platform revenue share |
+| Services | Hosting, tools, integration and support | 1.3 / 3.2 / 5.5 | 8 | More open adoption; conversion matures |
 
-Developer premium fit = (quality + ecosystem − 2) / 9; enterprise premium fit = (quality + reliability − 2) / 9. Each is bounded to 0.25–1.1. The targeted fit controls premium retention and trust effects; a balanced plan uses their mean. Fit below 0.65 reduces retention by 0.12 and trust by 5.
+A developer account uses one unit; an enterprise account uses three billed/delivery units. Commercial licensing never revokes existing free model rights. In this teaching model, premium licensing introduces restrictive terms in the new paid package: trust falls 6 unless that round's ecosystem investment supports the open community. Ordinary paid licensing has no automatic trust penalty.
 
-Research investment has quality/reliability/ecosystem gains [2.4, 0.6, 0.5]; reliability [0.6, 2.4, 0.5]; ecosystem [0.5, 0.6, 2.4]. Each costs 24. Each gain is multiplied by (1 − existing capability / 12), then the result is rounded to one decimal and capped at 10. Keep cash costs zero and preserves existing capabilities. Investment must leave at least 20 cash; this reserve does not guarantee solvency after service costs.
+Investments cost 24 and increase [quality, reliability, ecosystem]: research [2.4,0.6,0.5], reliability [0.6,2.4,0.5], ecosystem [0.5,0.6,2.4]. Each gain is multiplied by (1 − opening capability/12); resulting capabilities round to one decimal and cap at 10. Keep cash costs zero.
 
-## Nine adaptive conditions
+Changing a previously chosen path costs 12. At least 20 cash must remain after investment plus switching. A transition applies ×0.8 to new account acquisition and existing account retention that round; existing accounts are migrated, not discarded. Capabilities, community adoption, and trust persist. Path tenure restarts at one. Initial path selection is free. If no discretionary spending occurs, an already low-cash company can continue below the 20 reserve.
 
-Conditions for round N+1 use the active companies at the beginning of closed round N and their actual plans. A missed plan uses the last focus and price with no investment. Shares, rather than raw counts, keep the same composition comparable across class sizes. Conditions last one round and are recalculated; they do not stack across time.
+## Resolution formulas
 
-| Trigger | Condition next round |
-| --- | --- |
-| At least 50% use low pricing | List revenue falls 15%; new acquisition falls 60% for premium offers and 15% for standard offers |
-| At least 60% target enterprises | New enterprise acquisition falls 40% |
-| At least 60% target developers | New developer acquisition falls 40% |
-| At least 50% invest in research | Quality's contribution to customer attraction doubles |
-| Average starting reliability below 4 and fewer than 25% invest in reliability | Service costs rise 20% |
-| At least 60% use open or open core | Closed developer acquisition falls 15% and closed revenue falls 18%; open developer acquisition rises 10% |
-| At least 50% invest in ecosystem | Ecosystem's contribution to developer attraction increases 50% |
-| At least 60% charge premium prices | New developer demand grows 12% |
-| At least 60% keep cash | An outside rival improves; quality's contribution rises 25% |
+Use updated capabilities for the following calculations. All monetary ledger entries round to one decimal; adoption/account counts round as specified. The authoritative implementation is lib/simulation.ts.
 
-If both quality conditions could apply, use the stronger weight rather than multiplying them. Different conditions can apply together and multiply their stated factors. Market bulletins show each triggered condition, its actual cause and its numeric effect before decisions open. With no triggers, the bulletin states normal growth. There is no next market after the final round, but the last class mix is shown for discussion.
+- Base demand by round: [1,1.08,1.20,1.25].
+- New community adoption = 22 × demand × path growth × (1 + ecosystem ×0.07 × market ecosystem weight) × (opening trust/100 +0.45) × ecosystem-hub bonus. Path growth: licensing 0.85, partnerships 1.25, services 1.30.
+- Community stock = round(opening adoption ×0.94 + new community adoption). Adoption alone produces no billings.
+- New account conversion: licensing 0.48, partnerships 0.42; services 0.12 + ecosystem ×0.025 × market ecosystem weight + min(tenure−1,3) ×0.045. Clamp conversion to [0.10,0.80]. This is an input to new paid-account demand, not a promise that this percentage of all adopters is billed.
+- Capability fit = clamp((quality + reliability)/10,0.3,1.25), using ecosystem in place of quality for services.
+- Price demand multiplier: accessible 1.30, standard 1, premium 0.65 × fit. During a price war, multiply premium acquisition by 0.65 and standard by 0.90.
+- Paid-account attraction = clamp(0.55 + quality ×0.09 × market quality weight + reliability ×0.035,0.4,2).
+- New paid-account demand = new community adoption × conversion × price demand × price-war acquisition effect × attraction × licensing pressure (licensing only) × transition effect.
+- New developer fraction: licensing 0.30, partnerships 0.60, services 0.75. Enterprise acquisition = remaining fraction/2, with enterprise-hub bonus.
+- Retention = clamp(0.65 + opening trust/500 + reliability/80 + services ecosystem ×0.012 − premium mismatch 0.12,0.45,0.96), then multiply by the transition effect. A mismatch occurs when premium fit is below 0.70.
+- Wanted accounts = round(existing accounts × retention + new accounts), separately by segment.
+- Capacity = round(36 + reliability ×5 + partnership bonus 35). If wanted units exceed capacity, multiply both account counts by capacity/wanted units and floor. Unserved counts are wanted minus served. Classmates influence conditions; they do not split a finite customer pool.
+- Gross billings = roundMoney((served developers + enterprise ×3) × unit fee × market revenue factor × services discount).
+- Services discount factor = 1 − (1 − market services factor) × (1 − ecosystem/10). A mature ecosystem cushions generic-hosting pressure.
+- Partner share rate = min(0.50, market base share + opening dependence ×0.001). Non-partnership paths have no partner share. Cut = roundMoney(gross billings × rate). Retained revenue = roundMoney(gross billings − cut).
+- Operations = base ecosystem cost + path operating cost.
+- Delivery = roundMoney((developers ×0.42 + enterprise ×1.25) × market delivery factor × (1 − reliability ×0.035) × partnership discount 0.75). Non-partner discount is 1.
+- Operating surplus = roundMoney(retained revenue − operations − delivery), before investment or transition.
+- Closing cash = roundMoney(opening cash + operating surplus − investment − transition).
+- Dependence: partnership +22 per round, other paths −18, clamped to [0,100]. It is an illustrative index, not a probability. Revenue-share calculation uses opening dependence.
+- Community trust: +3 for service ratio at least 0.95; otherwise −ceil((1−service ratio) ×24). Ecosystem investment adds 4. Restrictive premium licensing terms subtract 6 unless ecosystem investment supports the open base. Any premium capability mismatch subtracts 5. Clamp total trust to [0,100].
 
-## Customer economics
+Services maturation is compressed into four rounds for teaching; it is not a forecast of real revenue timing. Economic results and explanations are saved together, including the gross/net revenue ledger.
 
-Demand grows by period: developer multipliers [1, 1.08, 1.2, 1.25], enterprise [1, 1.1, 1.15, 1.25]. Apply segment crowding and affordability conditions to these multipliers.
+## Adaptive conditions
 
-New developer acquisition starts from 18 and is multiplied by period demand, focus, price demand, price-competition effect, release model, open-standard effect, developer attraction, trust factor and hub effect. New enterprise acquisition starts from 6 and uses period demand, focus, price demand, price-competition effect, enterprise attraction, trust factor and hub effect.
+Computed from active companies at the start of the closed round and their plans, including fallback plans. Percentages normalize by active company count. Conditions affect only the next round and expire before recomputation.
 
-Developer attraction = 0.55 + ecosystem ×0.1 × ecosystem weight + (quality − 3) ×0.1 × quality weight; cap to 0.25–2. Enterprise attraction = 0.45 + (quality − 3) ×0.09 × quality weight + reliability ×0.09; cap to 0.2–2. Trust factor = 0.65 + trust / 150.
+| Trigger | Threshold | Next-round effect |
+| --- | --- | --- |
+| Accessible pricing | ≥50% | Revenue ×0.85; premium acquisition ×0.65, standard ×0.90 |
+| Licensing | ≥60% | New licensing acquisition ×0.65 |
+| Partnerships | ≥60% | Base partner share 40% instead of 28% |
+| Services | ≥60% | Services factor 0.80, cushioned by ecosystem |
+| Research investment | ≥50% | Quality weight 1.50 |
+| Ecosystem investment | ≥50% | Ecosystem weight 1.50 |
+| Low reliability | Opening mean <4 and reliability investment <25% | Delivery cost ×1.20 |
+| Premium pricing | ≥60% | Demand ×1.12 |
+| Keep cash | ≥60% | Quality weight at least 1.25 |
 
-Retention = 0.62 + trust / 400 + reliability / 80, minus the premium-fit penalty when applicable; cap to 0.45–0.95. Add retained customers to new acquisition and round to integers. Capacity = round(44 + reliability ×4). Developers consume 1 unit; enterprises 3. If requested load exceeds capacity, proportionally reduce both customer groups and round down. Unserved customers reduce trust.
+Conditions can coexist. Quality weight uses the maximum, not addition; partner share caps at 50%; capability attraction and conversion are clamped as above. Each condition has a distinct bounded factor, so duplicate stacking cannot occur. All active effects are visible in the bulletin; the first three appear immediately and the rest expand.
 
-Revenue = served customers × segment list rate × release paid conversion × price-war factor × closed/open-standard factor. Service costs = (developers ×0.32 + enterprises ×1.1) × service market factor × (1 − reliability ×0.035). Money is rounded to one decimal at each financial line.
+## Missing decisions, bankruptcy, ranking and discussion
 
-Trust rises 4 when at least 95% of requested demand is served; otherwise falls by ceil((1 − served fraction) ×24). Reliability of at least 5 adds 2. Premium below the target fit subtracts 5. Trust is bounded to 0–100 and affects the next period's acquisition and retention.
+Missing decisions repeat the previous path and price with no investment; first-round fallback is services at standard price. Cash ≤0 is permanent bankruptcy; failed companies remain visible, unranked, and can observe. Highest ending cash among solvent companies wins; equal cash shares rank.
 
-## Resolution and victory
-
-Order: validate plan and reserve → pay investment → improve capabilities → acquire and retain customers under the published conditions → limit service to capacity → calculate revenue and expenses → update trust → check solvency → publish next conditions.
-
-Closing cash = opening cash − investment + revenue − operations − service. Cash at zero or below causes permanent bankruptcy. Failed companies cannot submit or influence later markets. Highest ending cash among surviving companies wins; equal cash shares rank. Failed companies are unranked but can inspect their history. This short financial horizon is explicitly part of the debrief.
-
-Companies face a common simulated external market. They influence competition conditions but do not split a fixed class customer pool. There are no hidden same-round penalties based on other submissions. Forecasts are qualitative; actual results reconcile to the financial breakdown.
+Profiles also show adoption, paying accounts, community trust, partner dependence and ongoing operating surplus. A four-round cash result does not establish long-term sustainability. Final discussion: Which path would you recommend to DeepSeek, and what would it have to sacrifice? Who captured value? What funded research? Would the winner change over a longer horizon?
