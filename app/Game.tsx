@@ -448,7 +448,7 @@ export default function Game() {
     !session ||
     phase === "lobby" ||
     phase === "finished" ||
-    (!data && /Room not found|Older game rooms/.test(error));
+    (!data && /Room not found|Older game rooms|uses older rules/.test(error));
   function leave() {
     if (!canLeave) return;
     setSession(null);
