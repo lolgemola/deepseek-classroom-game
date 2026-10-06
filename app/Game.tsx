@@ -4,7 +4,6 @@ import QRCode from "qrcode";
 import CompanySetup from "./CompanySetup";
 import InvestmentSliders from "./components/InvestmentSliders";
 import StrategyCards from "./components/StrategyCards";
-import CompanyMap from "./components/CompanyMap";
 import RoundResults from "./components/RoundResults";
 import CompanyProfile, { CompanyComparison } from "./components/CompanyProfile";
 import {
@@ -636,7 +635,8 @@ export default function Game() {
           {me?.setupComplete &&
             phase === "planning" &&
             !me.plan &&
-            !me.failed && (
+            !me.failed &&
+            !review && (
               <section
                 className="founder-status"
                 aria-label="Your company resources"
@@ -818,7 +818,8 @@ export default function Game() {
                 )}
               </div>
               {(phase === "briefing" || phase === "planning") &&
-                (isHost || !me?.plan) && (
+                (isHost || !me?.plan) &&
+                (isHost || !review) && (
                   <MarketBrief market={data.market} compact={!isHost} />
                 )}
               {phase === "briefing" && (
@@ -862,82 +863,28 @@ export default function Game() {
                     </p>
                   </section>
                 ) : me ? (
-                  <section className="panel planning">
-                    <h2>Your company plan</h2>
-                    <StrategyCards
-                      value={draft.path}
-                      disabled={busy || review}
-                      onChange={(path) => edit({ ...draft, path })}
-                    />
-                    <details className="business-map">
-                      <summary>How your business works</summary>
-                      <CompanyMap company={me} path={draft.path} />
-                    </details>
-                    <ChoiceGroup
-                      title="2. What will you charge?"
-                      items={prices}
-                      value={draft.price}
-                      disabled={busy || review}
-                      onChange={(id) =>
-                        edit({ ...draft, price: id as Plan["price"] })
-                      }
-                    />
-                    <p className="small">
-                      Paid offering: {selectedPath.offering}. Fee per account
-                      unit:{" "}
-                      {
-                        selectedPath.rates[
-                          draft.price === "low"
-                            ? 0
-                            : draft.price === "standard"
-                              ? 1
-                              : 2
-                        ]
-                      }
-                      . Enterprises count as three units; open adopters are not
-                      billed.
-                    </p>
-                    <InvestmentSliders
-                      company={me}
-                      investment={draft.investment}
-                      path={draft.path}
-                      disabled={busy || review}
-                      onChange={(investment) => edit({ ...draft, investment })}
-                    />
-                    {!canAfford(me, draft.investment, draft.path) && (
-                      <p role="status" className="notice">
-                        This plan cannot leave the 20-cash reserve. Reduce
-                        investment or keep your existing path.
-                      </p>
-                    )}
-                    <div className="budget">
-                      <span>
-                        Investment <b>{investmentCost}</b>
-                      </span>
-                      <span>
-                        Transition <b>{switchCost}</b>
-                      </span>
-                      <span>
-                        Cash after decisions <b>{cash(me.cash - planCost)}</b>
-                      </span>
-                      <span>
-                        Minimum reserve <b>{OPERATING_RESERVE}</b>
-                      </span>
-                    </div>
-                    <p className="small">
-                      Operations will cost{" "}
-                      {hubs.find((h) => h.id === me.hub)!.operatingCost +
-                        selectedPath.operation}{" "}
-                      cash, plus service costs. Revenue and customer gains
-                      depend on your plan and the market.
-                    </p>
-                    {review ? (
-                      <div className="review">
-                        <h3>Ready to commit?</h3>
-                        <PlanSummary plan={draft} />
-                        <p>
-                          You sell: <b>{selectedPath.offering}</b>. Account fee:{" "}
-                          <b>
+                  <section className="planning">
+                    {!review && (
+                      <>
+                        <section className="panel decision-section">
+                          <StrategyCards
+                            company={me}
+                            value={draft.path}
+                            disabled={busy || review}
+                            onChange={(path) => edit({ ...draft, path })}
+                          />
+                        </section>
+                        <section className="panel decision-section">
+                          <ChoiceGroup
+                            title="2. Price"
+                            items={prices}
+                            value={draft.price}
+                            disabled={busy || review}
+                            onChange={(id) =>
+                              edit({ ...draft, price: id as Plan["price"] })
+                            }
+                          />
+                          <p className="price-fee">
                             {
                               selectedPath.rates[
                                 draft.price === "low"
@@ -946,58 +893,126 @@ export default function Game() {
                                     ? 1
                                     : 2
                               ]
-                            }
-                          </b>
-                          ; enterprise accounts count as three units.{" "}
-                          {draft.path === "partnerships"
-                            ? `Platform share: ${Math.round(Math.min(0.5, data.market.partnerShare + me.dependence * 0.001) * 100)}% of gross billings.`
-                            : "Revenue comes directly to your company."}
-                        </p>
-                        {switchCost > 0 && (
-                          <p className="notice">
-                            Switching costs 12 cash; new acquisition and
-                            existing-account retention are reduced 20% this
-                            round. Capabilities persist, but path tenure
-                            restarts.
+                            }{" "}
+                            cash per account unit
                           </p>
-                        )}
-                        <p>Your plan locks when confirmed.</p>
-                        <div className="actions">
-                          <button
-                            className="secondary"
-                            disabled={busy}
-                            onClick={() => setReview(false)}
-                          >
-                            Back to edit
-                          </button>
-                          <button
-                            className="primary"
-                            disabled={
-                              busy ||
-                              !canAfford(me, draft.investment, draft.path)
+                          <details className="decision-help">
+                            <summary>How pricing works</summary>
+                            <p>
+                              Enterprise accounts count as three units. Open
+                              adopters are not billed.
+                            </p>
+                          </details>
+                        </section>
+                        <section className="panel decision-section">
+                          <InvestmentSliders
+                            company={me}
+                            investment={draft.investment}
+                            path={draft.path}
+                            disabled={busy || review}
+                            onChange={(investment) =>
+                              edit({ ...draft, investment })
                             }
-                            onClick={() =>
-                              void act("choose", {
-                                round: data.round,
-                                plan: draft,
-                              })
-                            }
-                          >
-                            {busy ? "Saving…" : "Confirm & lock plan"}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        className="primary"
-                        disabled={
-                          busy || !canAfford(me, draft.investment, draft.path)
-                        }
-                        onClick={() => setReview(true)}
-                      >
-                        Review my plan
-                      </button>
+                          />
+                          {!canAfford(me, draft.investment, draft.path) && (
+                            <p role="status" className="notice">
+                              This plan cannot leave the 20-cash reserve. Reduce
+                              investment or keep your existing path.
+                            </p>
+                          )}
+                        </section>
+                      </>
                     )}
+                    <section className="panel decision-section plan-checkout">
+                      <div className="checkout-cash">
+                        <span>Cash after decisions</span>
+                        <strong>{cash(me.cash - planCost)}</strong>
+                      </div>
+                      <details className="decision-help">
+                        <summary>Cost details</summary>
+                        <p>
+                          Investment {investmentCost} · Transition {switchCost}{" "}
+                          · Minimum reserve {OPERATING_RESERVE}.
+                        </p>
+                        <p>
+                          Operations:{" "}
+                          {hubs.find((h) => h.id === me.hub)!.operatingCost +
+                            selectedPath.operation}{" "}
+                          cash, plus delivery costs. Revenue depends on your
+                          plan and market.
+                        </p>
+                      </details>
+                      {review ? (
+                        <div className="review">
+                          <h3>Ready to commit?</h3>
+                          <PlanSummary plan={draft} />
+                          <details className="decision-help">
+                            <summary>Revenue details</summary>
+                            <p>
+                              You sell: <b>{selectedPath.offering}</b>. Account
+                              fee:{" "}
+                              <b>
+                                {
+                                  selectedPath.rates[
+                                    draft.price === "low"
+                                      ? 0
+                                      : draft.price === "standard"
+                                        ? 1
+                                        : 2
+                                  ]
+                                }
+                              </b>
+                              ; enterprise accounts count as three units.{" "}
+                              {draft.path === "partnerships"
+                                ? `Platform share: ${Math.round(Math.min(0.5, data.market.partnerShare + me.dependence * 0.001) * 100)}% of gross billings.`
+                                : "Revenue comes directly to your company."}
+                            </p>
+                          </details>
+                          {switchCost > 0 && (
+                            <p className="notice">
+                              Switching: 12 cash and 20% less acquisition and
+                              retention this round. Capabilities stay; path
+                              tenure restarts.
+                            </p>
+                          )}
+                          <p>Your plan locks when confirmed.</p>
+                          <div className="actions">
+                            <button
+                              className="secondary"
+                              disabled={busy}
+                              onClick={() => setReview(false)}
+                            >
+                              Back to edit
+                            </button>
+                            <button
+                              className="primary"
+                              disabled={
+                                busy ||
+                                !canAfford(me, draft.investment, draft.path)
+                              }
+                              onClick={() =>
+                                void act("choose", {
+                                  round: data.round,
+                                  plan: draft,
+                                })
+                              }
+                            >
+                              {busy ? "Saving…" : "Confirm & lock plan"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          className="primary"
+                          disabled={
+                            busy || !canAfford(me, draft.investment, draft.path)
+                          }
+                          onClick={() => setReview(true)}
+                        >
+                          Review my plan
+                        </button>
+                      )}
+                    </section>
                   </section>
                 ) : (
                   <section className="panel">

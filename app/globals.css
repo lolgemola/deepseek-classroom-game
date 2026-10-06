@@ -1332,3 +1332,187 @@ footer {
 .investment-sliders:disabled .allocation-row {
   opacity: 0.7;
 }
+/* Give each player decision its own surface and visual rhythm. */
+.planning {
+  display: grid;
+  gap: 24px;
+}
+.decision-section {
+  border-color: #d8d8df;
+}
+.decision-section .choice-group {
+  margin: 0;
+}
+.decision-section .choice-group legend {
+  color: var(--blue);
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+.decision-section .strategy-cards {
+  margin: 0 0 12px;
+}
+.decision-section .strategy-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px 12px;
+  padding: 20px;
+  position: relative;
+}
+.decision-section .strategy-card svg {
+  grid-row: 1/3;
+  margin: 0;
+  width: 24px;
+  height: 24px;
+}
+.decision-section .strategy-card strong,
+.decision-section .strategy-card .offering {
+  grid-column: 2;
+}
+.decision-section .strategy-card strong {
+  font-size: 18px;
+  padding-right: 12px;
+}
+.decision-section .strategy-card p {
+  grid-column: 1/-1;
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+}
+.decision-section .strategy-card.selected::after {
+  content: "✓";
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  color: var(--blue);
+  font-weight: 700;
+}
+.decision-help {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #ececf0;
+}
+.decision-help summary {
+  font-size: 14px;
+  padding: 6px 0;
+}
+.decision-help p {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.decision-help article {
+  margin: 18px 0;
+}
+.decision-help h3 {
+  font-size: 16px;
+}
+.decision-section .business-map {
+  margin: 0;
+}
+.decision-section .business-map summary {
+  font-size: 14px;
+}
+.price-fee {
+  font-size: 15px;
+  color: var(--text);
+  margin: 14px 0 0;
+  font-weight: 600;
+}
+.decision-section .choice-description {
+  font-size: 14px;
+}
+.decision-section .allocation-row {
+  padding: 14px 0;
+}
+.decision-section .allocation-summary {
+  margin: 14px 0;
+}
+.decision-section .allocation-row input[type="range"] {
+  margin: 4px 0;
+  height: 40px;
+}
+.decision-section .allocation-row small {
+  font-size: 14px;
+}
+.decision-section .investment-sliders > .textbutton {
+  margin-top: 8px;
+}
+.checkout-cash {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.checkout-cash span {
+  color: var(--muted);
+  font-size: 14px;
+}
+.checkout-cash strong {
+  font-size: 28px;
+  font-weight: 600;
+}
+.plan-checkout > .primary {
+  margin-top: 20px;
+  width: 100%;
+}
+.plan-checkout .review {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 24px;
+}
+.plan-checkout .review > p {
+  font-size: 14px;
+  color: var(--muted);
+}
+.plan-checkout .review .notice {
+  color: #245738;
+}
+.plan-checkout .actions {
+  margin-top: 20px;
+}
+@media (max-width: 760px) {
+  .planning {
+    gap: 20px;
+  }
+  .decision-section {
+    padding: 22px;
+  }
+  .decision-section .strategy-cards {
+    gap: 10px;
+  }
+  .decision-section .strategy-card {
+    padding: 16px;
+  }
+  .decision-section .strategy-card .offering {
+    font-size: 13px;
+  }
+  .decision-section .choice-buttons button {
+    font-size: 14px;
+  }
+  .plan-checkout .actions button {
+    width: 100%;
+  }
+}
+.setup-cost {
+  font-size: 14px;
+  color: var(--muted);
+  padding-top: 8px;
+  margin: 0;
+}
+.setup-help {
+  margin-bottom: 24px;
+}
+.setup-option > p.setup-cost {
+  font-size: 14px;
+}
+.setup-option .optionaction {
+  padding-top: 0;
+}
+.setup-option {
+  gap: 10px;
+}
+.setup-advantage p,
+.setup-tradeoff p {
+  margin-top: 4px;
+}

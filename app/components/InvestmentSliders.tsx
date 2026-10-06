@@ -48,9 +48,9 @@ export default function InvestmentSliders({
   }
   return (
     <fieldset className="choice-group investment-sliders" disabled={disabled}>
-      <legend>3. Where will you invest?</legend>
+      <legend>3. Investment</legend>
       <p className="choice-description">
-        Divide up to 24 cash. Anything unspent stays with your company.
+        Split 24 cash. Keep anything unspent.
       </p>
       <div className="allocation-summary" aria-live="polite">
         <span>
@@ -97,17 +97,27 @@ export default function InvestmentSliders({
                 aria-valuetext={allocation[key] + " cash"}
                 onChange={(e) => change(key, Number(e.target.value))}
               />
-              <p>{i.description}</p>
+
               <small>
                 {capability}: {current}/10 → <b>{projected[index]}/10</b>
               </small>
             </div>
           );
         })}
-      <p className="small">
-        Lower one slider to free budget for another. Projections include gains
-        from all three investments.
-      </p>
+      <details className="decision-help">
+        <summary>How investment works</summary>
+        {investments
+          .filter((i) => i.id !== "save")
+          .map((i) => (
+            <p key={i.id}>
+              <b>{i.title}:</b> {i.description}
+            </p>
+          ))}
+        <p>
+          Lower one slider to free budget for another. Projections include gains
+          from all three investments.
+        </p>
+      </details>
       {available < INVESTMENT_COST && (
         <p className="small">
           Your cash and transition costs allow up to {available} cash of

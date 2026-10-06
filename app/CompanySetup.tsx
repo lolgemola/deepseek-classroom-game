@@ -23,6 +23,17 @@ export default function CompanySetup({
   });
   const [review, setReview] = useState(false);
   const icons = [FlaskConical, Building2, Code2];
+  const concise = [
+    ["Quality starts at 4/10", "Higher costs; distribution needs work"],
+    [
+      "Trust 65/100 · 15% more enterprise acquisition",
+      "Quality and ecosystem start at 2/10",
+    ],
+    [
+      "Ecosystem 4/10 · 10% faster adoption",
+      "Quality 2/10; weaker enterprise credibility",
+    ],
+  ];
   const preview = hub ? initialCompany({ id: "preview", name, hub }) : null;
   return (
     <section className="panel setup-panel">
@@ -37,10 +48,7 @@ export default function CompanySetup({
           ? "Your company starts here."
           : "Choose your starting ecosystem."}
       </h1>
-      <p className="lead">
-        Your base model stays open. In each round, decide how to build a
-        sustainable business around it.
-      </p>
+      <p className="lead">Your ecosystem stays fixed for the game.</p>
       {!review ? (
         <>
           <div className="setup-options">
@@ -62,15 +70,15 @@ export default function CompanySetup({
                 >
                   <Icon size={32} aria-hidden="true" />
                   <h2>{h.title}</h2>
-                  <p>{h.description}</p>
                   <div className="setup-advantage">
-                    <b>Your advantage</b>
-                    <p>{h.advantage}</p>
+                    <b>Advantage</b>
+                    <p>{concise[i][0]}</p>
                   </div>
                   <div className="setup-tradeoff">
-                    <b>The trade-off</b>
-                    <p>{h.tradeoff}</p>
+                    <b>Trade-off</b>
+                    <p>{concise[i][1]}</p>
                   </div>
+                  <p className="setup-cost">{h.operatingCost} cash / round</p>
                   <span className="optionaction">
                     {hub === h.id ? "Selected" : "Choose ecosystem"}
                   </span>
@@ -78,6 +86,17 @@ export default function CompanySetup({
               );
             })}
           </div>
+          <details className="decision-help setup-help">
+            <summary>More about the ecosystems</summary>
+            {hubs.map((h) => (
+              <article key={h.id}>
+                <h3>{h.title}</h3>
+                <p>{h.description}</p>
+                <p>{h.advantage}</p>
+                <p>{h.tradeoff}</p>
+              </article>
+            ))}
+          </details>
           <button
             className="primary"
             disabled={!hub || busy}
@@ -125,8 +144,7 @@ export default function CompanySetup({
               </div>
               <p className="small">
                 Base operations: {hubs.find((h) => h.id === hub)?.operatingCost}{" "}
-                cash per round. Your monetization path and delivery add costs.
-                The ecosystem stays fixed; your path can change.
+                cash per round, plus path and delivery costs.
               </p>
             </section>
             <div className="actions">
