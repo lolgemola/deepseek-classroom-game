@@ -30,3 +30,6 @@ Research, reliability and ecosystem sliders allocate integer cash totaling at mo
 ## Readability pass
 Player planning uses distinct revenue, pricing, investment and confirmation cards. Revenue and ecosystem choices show concise benefits/trade-offs; full explanations and the business map expand on demand. Slider descriptions, pricing mechanics and financial details are collapsed. Review shows the summary rather than disabled decision controls. Phone and desktop layout, expanded help and review/back persistence verified. Economics and 90-second timing unchanged.
 
+
+## Market news presentation
+Adaptive conditions now use fictional industry headlines, short scenarios and Lucide concept diagrams for all ten signal types. Exact gameplay effects remain visible; class trigger data expands under “Why this happened”. Shared MarketNews cards cover briefing, planning review and next-round previews, including overflow conditions. Economic rules and saved room schema are unchanged.

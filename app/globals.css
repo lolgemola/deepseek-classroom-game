@@ -383,17 +383,36 @@ progress::-webkit-progress-value {
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
-.signals article {
-  border-left: 2px solid var(--blue);
-  padding: 4px 16px;
+/* Market news uses concept diagrams, not numerical charts. */
+.signals .market-story {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
 }
-.signals h3 {
-  font-size: 17px;
-  margin-bottom: 8px;
+.market-diagram {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 24px 20px;
+  min-height: 160px;
+  background: #edf3fb;
+  color: #245da2;
 }
-.signals p {
-  margin-bottom: 8px;
-}
+.market-diagram-down { background: #fff3e8; color: #925018; }
+.market-diagram-network { background: #edf6f2; color: #286e57; }
+.market-diagram-symbol { display: grid; gap: 12px; justify-items: center; }
+.market-diagram-bars { flex: 1; display: grid; gap: 10px; }
+.market-diagram-node { position: relative; font-size: 14px; line-height: 1.3; padding: 7px 10px; background: #ffffffb3; border: 1px solid #ffffff; border-radius: 7px; }
+.market-diagram-node + .market-diagram-node::before { content: ""; position: absolute; top: -11px; left: 18px; height: 10px; border-left: 1px solid currentColor; }
+.market-story-copy { padding: 20px; }
+.signals h3 { font-size: 20px; line-height: 1.25; margin: 0 0 12px; }
+.signals p { font-size: 16px; line-height: 1.5; margin-bottom: 16px; }
+.market-story-effect { padding-top: 14px; border-top: 1px solid var(--line); }
+.market-story-effect strong { display: block; font-size: 14px; margin-bottom: 5px; }
+.market-story-cause summary { font-size: 14px; }
+.market-story-cause p { color: var(--muted); font-size: 14px; margin: 10px 0 0; }
+.market > details > .signals { margin-top: 16px; }
 .controlbar {
   display: flex;
   justify-content: space-between;

@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import CompanySetup from "./CompanySetup";
 import InvestmentSliders from "./components/InvestmentSliders";
 import StrategyCards from "./components/StrategyCards";
+import MarketNews from "./components/MarketNews";
 import RoundResults from "./components/RoundResults";
 import CompanyProfile, { CompanyComparison } from "./components/CompanyProfile";
 import {
@@ -108,11 +109,7 @@ function MarketBrief({
       {market.signals.length ? (
         <div className="signals">
           {market.signals.slice(0, 3).map((s) => (
-            <article key={s.id}>
-              <h3>{s.title}</h3>
-              <p>{s.effect}</p>
-              <span className="small">{s.cause}</span>
-            </article>
+            <MarketNews key={s.id} signal={s} />
           ))}
         </div>
       ) : (
@@ -123,19 +120,13 @@ function MarketBrief({
       {market.signals.length > 3 && (
         <details>
           <summary>{market.signals.length - 3} more market conditions</summary>
-          {market.signals.slice(3).map((s) => (
-            <article key={s.id}>
-              <h3>{s.title}</h3>
-              <p>
-                {s.cause} → {s.effect}
-              </p>
-            </article>
-          ))}
+          <div className="signals">
+            {market.signals.slice(3).map((s) => <MarketNews key={s.id} signal={s} />)}
+          </div>
         </details>
       )}
       <p className="small">
-        These conditions are fixed for this round. Your current choices
-        influence the next one.
+        Fictional market news · Your choices shape next round’s conditions.
       </p>
     </section>
   );
