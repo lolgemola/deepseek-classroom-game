@@ -5,9 +5,11 @@ import CashFlow from "./CashFlow";
 export default function RoundResults({
   result: r,
   identity,
+  compact = false,
 }: {
   result: RoundResult;
   identity?: string;
+  compact?: boolean;
 }) {
   const [animate, setAnimate] = useState(false);
   useEffect(() => {
@@ -26,6 +28,32 @@ export default function RoundResults({
     const timer = setTimeout(() => setAnimate(false), 1800);
     return () => clearTimeout(timer);
   }, [identity, r.round]);
+  if (compact) {
+    const change = r.closingCash - r.openingCash;
+    return (
+      <div className="founder-result">
+        <div className="cash-change">
+          <span>Cash this round</span>
+          <strong className={change < 0 ? "negative" : "positive"}>
+            {change > 0 ? "+" : ""}
+            {change.toFixed(1)}
+          </strong>
+          <small>Ending cash {r.closingCash.toFixed(1)}</small>
+        </div>
+        <p className="takeaway">{r.takeaway}</p>
+        {r.missed && (
+          <p className="small">
+            Missed plan · previous path and price continued without investment.
+          </p>
+        )}
+        <details>
+          <summary>View detailed results</summary>
+          <RoundResults result={r} />
+        </details>
+        <p className="small">Look at the main screen for the class results.</p>
+      </div>
+    );
+  }
   return (
     <div className={"result-content " + (animate ? "animate-result" : "")}>
       <div className="plan-summary">

@@ -444,7 +444,13 @@ export default function Game() {
       setBusy(false);
     }
   }
+  const canLeave =
+    !session ||
+    phase === "lobby" ||
+    phase === "finished" ||
+    (!data && /Room not found|Older game rooms/.test(error));
   function leave() {
+    if (!canLeave) return;
     setSession(null);
     setData(null);
     setError("");
@@ -471,14 +477,14 @@ export default function Game() {
           .length ?? 0);
 
   return (
-    <main className={isHost ? "presenter" : ""}>
+    <main className={isHost ? "presenter" : session ? "founder" : ""}>
       <header>
-        <button type="button" className="brand" disabled={busy} onClick={leave}>
+        <div className="brand">
           <span className="brandmark">D</span>
           <span>
             DeepSeek<span className="subbrand">The market game</span>
           </span>
-        </button>
+        </div>
         <span className="badge">
           {isHost ? "Presenter" : session ? "Founder" : "Classroom game"}
         </span>
@@ -486,7 +492,9 @@ export default function Game() {
       {error && (
         <div role="alert" className="error">
           {error}
-          <button onClick={leave}>Return to join / new game</button>
+          {canLeave && (
+            <button onClick={leave}>Return to join / new game</button>
+          )}
           <button
             onClick={() =>
               session
@@ -501,21 +509,23 @@ export default function Game() {
         </div>
       )}
       {!session ? (
-        <div className="start">
-          <section className="intro">
-            <p className="eyebrow">Your strategy. Everyone’s market.</p>
-            <h1>
-              Build a company.
-              <br />
-              <span>Shape the market.</span>
-            </h1>
-            <p className="lead">
-              Your model is open. How will you fund its future? Choose
-              licensing, partnerships or services. Your class shapes the market
-              everyone faces next.
-            </p>
-            <p className="initial">4 rounds · 3 decisions · 10–15 minutes</p>
-          </section>
+        <div className={"start " + (linkedRoom ? "direct-join" : "")}>
+          {!linkedRoom && (
+            <section className="intro">
+              <p className="eyebrow">Your strategy. Everyone’s market.</p>
+              <h1>
+                Build a company.
+                <br />
+                <span>Shape the market.</span>
+              </h1>
+              <p className="lead">
+                Your model is open. How will you fund its future? Choose
+                licensing, partnerships or services. Your class shapes the
+                market everyone faces next.
+              </p>
+              <p className="initial">4 rounds · 3 decisions · 10–15 minutes</p>
+            </section>
+          )}
           <section className="panel join">
             <p className="eyebrow">Welcome to the market</p>
             <h2>Name your company</h2>
@@ -567,14 +577,18 @@ export default function Game() {
                 {busy ? "Joining…" : "Join & set up company"}
               </button>
             </form>
-            <div className="separator" />
-            <button
-              className="secondary"
-              disabled={busy}
-              onClick={() => void act("create")}
-            >
-              Host a new game
-            </button>
+            {!linkedRoom && (
+              <>
+                <div className="separator" />
+                <button
+                  className="secondary"
+                  disabled={busy}
+                  onClick={() => void act("create")}
+                >
+                  Host a new game
+                </button>
+              </>
+            )}
           </section>
         </div>
       ) : !data ? (
@@ -587,12 +601,14 @@ export default function Game() {
             <span>
               Room <b>{session.room}</b>
             </span>
-            <span>{data.players.length} founders</span>
-            <button disabled={busy} className="textbutton" onClick={leave}>
-              Leave view
-            </button>
+            <span>{isHost ? `${data.players.length} founders` : me?.name}</span>
+            {canLeave && (
+              <button disabled={busy} className="textbutton" onClick={leave}>
+                Leave view
+              </button>
+            )}
           </div>
-          {(isHost || phase !== "lobby" || me?.setupComplete) && (
+          {isHost && (
             <div className="progress">
               {rounds.map((r, i) => (
                 <div
@@ -613,27 +629,29 @@ export default function Game() {
               ))}
             </div>
           )}
-          {me?.setupComplete && phase !== "results" && phase !== "finished" && (
-            <>
-              <div className="company-context">
-                {me.name} · {label(hubs, me.hub)} · Open base model
-              </div>
-              <section className="stats">
-                {[
-                  ["Cash", cash(me.cash)],
-                  ["Open adoption", me.adoption],
-                  ["Paying accounts", me.developers + me.enterprise],
-                  ["Community trust", me.trust + "/100"],
-                ].map(([title, value]) => (
-                  <div key={title}>
-                    <span>{title}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
+          {me?.setupComplete &&
+            phase === "planning" &&
+            !me.plan &&
+            !me.failed && (
+              <section
+                className="founder-status"
+                aria-label="Your company resources"
+              >
+                <div className="cash-resource">
+                  <span>Available cash</span>
+                  <strong>{cash(me.cash)}</strong>
+                </div>
+                <Capabilities company={me} />
+                <details>
+                  <summary>More company metrics</summary>
+                  <p className="small">
+                    Open adoption {me.adoption} · Paying accounts{" "}
+                    {me.developers + me.enterprise} · Community trust {me.trust}
+                    /100
+                  </p>
+                </details>
               </section>
-              <Capabilities company={me} />
-            </>
-          )}
+            )}
           {phase === "lobby" ? (
             <div className={"lobby " + (!isHost ? "founder-lobby" : "")}>
               {me && !me.setupComplete ? (
@@ -655,18 +673,20 @@ export default function Game() {
                   <p className="lead">
                     {isHost
                       ? "Founders join with a name, then explore starting ecosystems. Wait for everyone to confirm their setup."
-                      : "Your presenter will introduce the first market. Your setup is fixed; your plan can change each round."}
+                      : "Look at the main screen. Your presenter will start the game."}
                   </p>
-                  <div className="names">
-                    {data.players.map((p) => (
-                      <span key={p.id}>
-                        {p.name} ·{" "}
-                        {p.setupComplete
-                          ? label(hubs, p.hub) + " · Ready"
-                          : "Choosing setup…"}
-                      </span>
-                    ))}
-                  </div>
+                  {isHost && (
+                    <div className="names">
+                      {data.players.map((p) => (
+                        <span key={p.id}>
+                          {p.name} ·{" "}
+                          {p.setupComplete
+                            ? label(hubs, p.hub) + " · Ready"
+                            : "Choosing setup…"}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {isHost && (
                     <p role="status" className="notice">
                       {data.ready} / {data.players.length} founders ready
@@ -722,25 +742,36 @@ export default function Game() {
             <section className="final">
               <p className="eyebrow">Market closed</p>
               <h1>
-                {data.players.every((p) => p.failed)
-                  ? "A tough market for everyone."
-                  : "The final company results."}
+                {!isHost
+                  ? "Your company results."
+                  : data.players.every((p) => p.failed)
+                    ? "A tough market for everyone."
+                    : "The final company results."}
               </h1>
-              <p className="lead">
-                Highest ending cash among solvent companies wins. Equal cash
-                shares the rank.
-              </p>
-              <div className="panel debrief">
-                <h2>
-                  Which path would you recommend to DeepSeek—and what would it
-                  have to sacrifice?
-                </h2>
-                <p>
-                  Who captured the value? What funded continued research? Did
-                  adoption become revenue? Would the cash winner remain
-                  strongest over a longer horizon?
+              {isHost && (
+                <p className="lead">
+                  Highest ending cash among solvent companies wins. Equal cash
+                  shares the rank.
                 </p>
-              </div>
+              )}
+              {isHost && (
+                <div className="panel debrief">
+                  <h2>
+                    Which path would you recommend to DeepSeek—and what would it
+                    have to sacrifice?
+                  </h2>
+                  <p>
+                    Who captured the value? What funded continued research? Did
+                    adoption become revenue? Would the cash winner remain
+                    strongest over a longer horizon?
+                  </p>
+                </div>
+              )}
+              {me && (
+                <p className="small">
+                  Look at the main screen for the final discussion.
+                </p>
+              )}
               {me && <CompanyProfile company={me} />}
               {isHost && <CompanyComparison companies={data.players} />}
               <p className="small">
@@ -782,18 +813,16 @@ export default function Game() {
                   </div>
                 )}
               </div>
-              {(phase === "briefing" || phase === "planning") && (
-                <MarketBrief
-                  market={data.market}
-                  compact={phase === "planning" && !isHost}
-                />
-              )}
+              {(phase === "briefing" || phase === "planning") &&
+                (isHost || !me?.plan) && (
+                  <MarketBrief market={data.market} compact={!isHost} />
+                )}
               {phase === "briefing" && (
                 <div className="controlbar">
                   <p>
                     {isHost
                       ? "Read the bulletin, then give founders 75 seconds to plan."
-                      : "Read the conditions. Your presenter will open decisions."}
+                      : "Look at the main screen. Decisions will open shortly."}
                   </p>
                   {isHost && (
                     <button
@@ -820,9 +849,12 @@ export default function Game() {
                 ) : me?.plan ? (
                   <section className="panel locked">
                     <p className="eyebrow">Plan locked</p>
-                    <PlanSummary plan={me.plan} />
+                    <details>
+                      <summary>Review submitted plan</summary>
+                      <PlanSummary plan={me.plan} />
+                    </details>
                     <p role="status">
-                      Waiting for the presenter to close the round.
+                      Look at the main screen. Results are on their way.
                     </p>
                   </section>
                 ) : me ? (
@@ -1042,48 +1074,47 @@ export default function Game() {
                       <RoundResults
                         result={lastResult}
                         identity={session.room + ":" + me?.id}
+                        compact={!isHost}
                       />
                     ) : (
                       <p>
-                        Compare the companies below. Capabilities and previous
-                        customer relationships carry forward.
+                        {isHost
+                          ? "Compare the companies below. Capabilities and previous customer relationships carry forward."
+                          : "Look at the main screen for the class results. Your company summary will be available at the end."}
                       </p>
                     )}
                   </section>
-                  {isHost && (
-                    <details className="panel">
-                      <summary>Explore company results</summary>
-                      <CompanyComparison companies={data.players} />
-                    </details>
-                  )}
-                  {data.nextMarket && (
+                  {isHost && <CompanyComparison companies={data.players} />}
+                  {isHost && data.nextMarket && (
                     <MarketBrief market={data.nextMarket} preview />
                   )}
-                  <div className="controlbar">
-                    <p>
-                      {data.round === 3
-                        ? "Compare financial results and discuss the longer-term trade-offs."
-                        : "Explain how this round’s choices changed the next market."}
-                    </p>
-                    {isHost && (
-                      <button
-                        className="primary"
-                        disabled={busy}
-                        onClick={() =>
-                          void act("advance", { version: data.version })
-                        }
-                      >
+                  {isHost && (
+                    <div className="controlbar">
+                      <p>
                         {data.round === 3
-                          ? "Show final results"
-                          : "Introduce round " + (data.round + 2)}
-                      </button>
-                    )}
-                  </div>
+                          ? "Compare financial results and discuss the longer-term trade-offs."
+                          : "Explain how this round’s choices changed the next market."}
+                      </p>
+                      {isHost && (
+                        <button
+                          className="primary"
+                          disabled={busy}
+                          onClick={() =>
+                            void act("advance", { version: data.version })
+                          }
+                        >
+                          {data.round === 3
+                            ? "Show final results"
+                            : "Introduce round " + (data.round + 2)}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </>
           )}
-          {(phase === "results" || phase === "finished") && (
+          {isHost && (phase === "results" || phase === "finished") && (
             <section className="panel leaderboard">
               <div className="boardheading">
                 <h2>
@@ -1133,7 +1164,7 @@ export default function Game() {
               </div>
             </section>
           )}
-          {!!me?.history.length && (
+          {phase === "finished" && !!me?.history.length && (
             <details className="panel history-panel">
               <summary>Your company history</summary>
               {me.history.map((result) => (
@@ -1146,11 +1177,15 @@ export default function Game() {
               ))}
             </details>
           )}
-          {data.mix && <ClassMix mix={data.mix} />}
+          {isHost && data.mix && <ClassMix mix={data.mix} />}
         </>
       )}
-      {(!session || isHost || me?.setupComplete) && <Rules />}
-      <footer>Classroom strategy simulation · Fictional financial units</footer>
+      {((!session && !linkedRoom) || isHost) && <Rules />}
+      {(!session || isHost || phase === "finished") && (
+        <footer>
+          Classroom strategy simulation · Fictional financial units
+        </footer>
+      )}
     </main>
   );
 }

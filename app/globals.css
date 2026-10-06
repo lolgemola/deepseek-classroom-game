@@ -1206,3 +1206,59 @@ footer {
     scroll-behavior: auto !important;
   }
 }
+/* Phone decisions and projector context have separate layouts. */
+.direct-join {
+  display: block;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 44px 0;
+}
+.founder-status {
+  padding: 20px;
+  background: var(--panel);
+  border-radius: 18px;
+  margin: 0 0 24px;
+}
+.cash-resource {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.cash-resource span {
+  color: var(--muted);
+  font-size: 14px;
+}
+.cash-resource strong {
+  font-size: 28px;
+  font-weight: 600;
+}
+.founder-status .capabilities {
+  margin: 0;
+}
+.founder-status details {
+  margin-top: 12px;
+}
+.cash-change {
+  display: flex;
+  flex-direction: column;
+  margin: 24px 0;
+}
+.cash-change > span,
+.cash-change small {
+  color: var(--muted);
+  font-size: 14px;
+}
+.cash-change strong {
+  font-size: 56px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+  margin: 6px 0;
+}
+.founder .roundheading h1 {
+  font-size: 36px;
+}
+.founder-result > details {
+  margin-top: 20px;
+}

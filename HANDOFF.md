@@ -19,3 +19,7 @@ Sites publishing on this Windows machine: run the native source workflow first. 
 ## Visual refresh
 Apple-inspired light theme with system typography, white cards, blue actions and responsive layouts. Planning keeps the three decisions and trade-offs visible; company maps, cash reconciliation and intermediate presenter comparisons expand on demand. Removed optional rationale entry, repeated rules, duplicate result metrics and planning leaderboards. Economics unchanged. Validated desktop and 390 x 844 phone layout, local join/setup/lock/result flow, TypeScript and production build.
 
+
+## Presenter and founder views
+QR joins go straight to the company name. Founder phones show compact planning resources, three decisions, locked-plan waiting and a cash-change takeaway with expandable detailed results. Shared market previews, class choices, leaderboards and discussion stay on the presenter screen. The logo is static; leave actions are guarded and hidden throughout active rounds, including transient error screens. Leave returns in the lobby and after final results; invalid or obsolete room recovery remains available. Refresh preserves session access. Game economics unchanged.
+
