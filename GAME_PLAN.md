@@ -4,7 +4,7 @@ The user approved implementation of a rule-driven adaptive simulation, without A
 
 ## Implemented decisions
 
-- Setup: name, fictional starting hub (research / enterprise / developer), release model (open / closed / open core).
+- Setup: join with a name first → ecosystem cards with advantages and trade-offs → release-model cards → starting-company summary → confirm ready. Setup drafts restore across refresh; the presenter can start only after all founders confirm.
 - Four rounds: customer focus, price, investment profile (research / reliability / ecosystem / keep cash).
 - Draft → review → confirm. Drafts restore after refresh; submitted plans are private and server-authoritative.
 - Capabilities and customer relationships carry forward; results explain cash and operating trade-offs.
@@ -26,4 +26,4 @@ Rehearse the final deployed version with two physical phones and a presenter lap
 
 ## Deferred
 
-AI narration or event generation is excluded. Also defer borrowing, equity fundraising, manual budget sliders, cloud-contract negotiation, changing hubs/releases, and a fixed customer pool split among class competitors. Production hosting remains a separate task; GitHub source publishing does not deploy a playable backend.
+AI narration or event generation is excluded. Also defer borrowing, equity fundraising, manual budget sliders, cloud-contract negotiation, changing hubs/releases, and a fixed customer pool split among class competitors. The game is publicly hosted through Sites at https://deepseek-market-game.lukas727.chatgpt.site. GitHub stores its source.

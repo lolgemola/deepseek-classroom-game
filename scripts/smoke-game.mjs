@@ -16,13 +16,25 @@ const room = created.room;
 const advance = async () => { const view = await read(room, { host: created.host }); await post({ action: 'advance', room, host: created.host, version: view.version }); return read(room, { host: created.host }); };
 await post({ action: 'advance', room, host: 'wrong', version: 0 }, 403);
 await post({ action: 'advance', ...created, version: 0 }, 400);
-await post({ action: 'join', room, name: 'Invalid startup', hub: 'mars', release: 'open' }, 400);
-const founders = await Promise.all(Array.from({ length: 30 }, (_, i) => post({ action: 'join', room, name: 'Founder ' + i, hub: ['developer', 'research', 'enterprise'][i % 3], release: i < 20 ? 'open' : 'closed' })));
+await post({ action: 'join', room, name: '   ' }, 400);
+const founders = await Promise.all(Array.from({ length: 30 }, (_, i) => post({ action: 'join', room, name: 'Founder ' + i })));
 assert.equal((await read(room)).players.length, 30);
+assert.equal((await read(room)).ready, 0);
+assert.equal((await read(room, { player: founders[0].player })).me.setupComplete, false);
+await post({ action: 'advance', ...created, version: (await read(room)).version }, 400);
+await post({ action: 'setup', room, player: 'fake', hub: 'research', release: 'open' }, 403);
+await post({ action: 'setup', room, player: founders[0].player, hub: 'mars', release: 'open' }, 400);
+await Promise.all(founders.map((f, i) => post({ action: 'setup', room, player: f.player, hub: ['developer', 'research', 'enterprise'][i % 3], release: i < 20 ? 'open' : 'closed' })));
+assert.equal((await read(room)).ready, 30);
+const configured = await read(room, { player: founders[1].player });
+assert.equal(configured.me.setupComplete, true);
+assert.equal(configured.me.hub, 'research');
+assert.equal(configured.me.quality, 4);
 assert.equal(JSON.stringify(await read(room)).includes(created.host), false);
 assert.equal(JSON.stringify(await read(room)).includes(founders[0].player), false);
 await post({ action: 'choose', room, player: founders[0].player, round: 0, plan: { focus: 'developers', price: 'low', investment: 'ecosystem' } }, 400);
 assert.equal((await advance()).phase, 'briefing');
+await post({ action: 'setup', room, player: founders[0].player, hub: 'enterprise', release: 'closed' }, 409);
 await post({ action: 'join', room, name: 'Late', hub: 'developer', release: 'core' }, 400);
 await post({ action: 'advance', ...created, version: 0 }, 409);
 for (let round = 0; round < 4; round++) {
@@ -61,7 +73,8 @@ assert.equal(finished.phase, 'finished');
 await post({ action: 'advance', ...created, version: finished.version }, 400);
 // A choice racing closure is either included exactly once or rejected.
 const raceRoom = await post({ action: 'create' });
-const raceFounder = await post({ action: 'join', room: raceRoom.room, name: 'Race', hub: 'developer', release: 'core' });
+const raceFounder = await post({ action: 'join', room: raceRoom.room, name: 'Race' });
+await post({ action: 'setup', room: raceRoom.room, player: raceFounder.player, hub: 'developer', release: 'core' });
 for (let i = 0; i < 2; i++) { const s = await read(raceRoom.room); await post({ action: 'advance', ...raceRoom, version: s.version }); }
 const raceState = await read(raceRoom.room);
 const [choice, close] = await Promise.all([

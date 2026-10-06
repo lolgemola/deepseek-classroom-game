@@ -5,7 +5,7 @@ A 10–15 minute multiplayer strategy simulation inspired by the DeepSeek case. 
 ## Playing
 
 1. Presenter selects **Host a new game** and projects the QR code.
-2. Founders join with a company name, starting hub (research, enterprise or developer) and release model (open, closed or open core). These stay fixed.
+2. Founders first join with only a company name. They then compare starting ecosystems (research, enterprise or developer), review each advantage and trade-off, and choose a release model (open, closed or open core). A starting-company summary shows capabilities and costs before confirmation. The presenter waits until everyone is ready.
 3. Presenter introduces the market bulletin, then opens decisions. Each founder chooses customer focus, price and an investment profile, reviews the plan and confirms it. Drafts can be edited until confirmation.
 4. After the suggested 75 seconds, presenter closes manually. Results explain revenue, investment, operating costs, service costs and remaining cash.
 5. The class's decisions create the next bulletin: price competition, crowded segments, capability races and other pressures. Everyone sees the conditions before deciding again.
@@ -31,10 +31,11 @@ The build generates `dist/server/wrangler.json`. Apply each pending migration **
 ```sh
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_strong_dormammu.sql
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_daily_kang.sql
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0002_sturdy_invisible_woman.sql
 npm run dev
 ```
 
-Existing checkouts that applied `0000` only need `0001`. Old tables are retained, but old rooms and browser sessions are not reused by version 2. Start a new room. Do not replay migrations already applied.
+Apply only pending migrations. `0002` adds setup readiness and preserves already configured founders. Old tables are retained, but old rooms and browser sessions are not reused by version 2. Start a new room. Do not replay migrations already applied.
 
 Open the URL printed by the server, normally `http://127.0.0.1:5173`. `npm start` previews the built Worker locally. Both share `.wrangler/state` with migrations. Phones cannot reach a laptop through a localhost QR URL: classroom phone play requires an accessible deployment.
 
@@ -55,7 +56,7 @@ The balance check compares 324 constant strategies against five classroom compos
 
 React 19, TypeScript, Vinext/Vite, Cloudflare Workers, D1 and Drizzle. GitHub stores the source; **GitHub Pages cannot run the multiplayer backend**. Production needs a Worker-compatible host, a real D1 database bound as `DB`, and the migrations applied to that database.
 
-The original starter build helpers and `.openai/hosting.json` remain. That file declares the logical DB binding and an unpublished Sites registration, not credentials or a working deployment. The local Wrangler config has a placeholder database ID. No production game deployment is included.
+The original starter build helpers and `.openai/hosting.json` remain. That file declares the logical DB binding and the Sites registration, not credentials. The local Wrangler config has a placeholder database ID. The public game is hosted with Sites at https://deepseek-market-game.lukas727.chatgpt.site. Source updates use the registered Sites project.
 
 | File | Purpose |
 | --- | --- |

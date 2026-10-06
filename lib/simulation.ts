@@ -5,14 +5,14 @@ export const OPERATING_RESERVE = 20;
 export const ROUND_SECONDS = 75;
 
 export const hubs = [
-  { id: 'research', title: 'Research hub', description: 'Quality starts at 4. Talent costs more: 18 cash per round.', operatingCost: 18 },
-  { id: 'enterprise', title: 'Enterprise hub', description: 'Trust starts at 65. Business introductions improve enterprise acquisition. Cost: 14 cash per round.', operatingCost: 14 },
-  { id: 'developer', title: 'Developer hub', description: 'Ecosystem starts at 4. Developer introductions improve adoption. Cost: 10 cash per round.', operatingCost: 10 },
+  { id: 'research', title: 'Research hub', description: 'Build near researchers and specialist talent.', advantage: 'Quality starts at 4/10 instead of 2/10. A stronger model can support premium offers.', tradeoff: 'Talent is expensive: operations cost 18 cash each round, before service costs.', operatingCost: 18 },
+  { id: 'enterprise', title: 'Enterprise hub', description: 'Build near business customers and trusted networks.', advantage: 'Trust starts at 65/100 instead of 55/100. Introductions bring 15% more new enterprise customers.', tradeoff: 'Operations cost 14 cash each round. Quality and ecosystem strength still start at 2/10.', operatingCost: 14 },
+  { id: 'developer', title: 'Developer hub', description: 'Build near app creators and an active developer community.', advantage: 'Ecosystem starts at 4/10 instead of 2/10. Introductions bring 10% more new developers.', tradeoff: 'Quality starts at 2/10 and trust at 55/100. You need to build credibility for premium enterprise offers. Operations cost 10 cash per round.', operatingCost: 10 },
 ] as const;
 export const releases = [
-  { id: 'open', title: 'Open release', description: 'More developer adoption; fewer customers pay for hosted access. Earn through convenience and service.' },
-  { id: 'closed', title: 'Closed model', description: 'More paid conversion; slower developer adoption. Exposed when open alternatives become common.' },
-  { id: 'core', title: 'Open core', description: 'Moderate adoption and paid conversion. Supporting two offerings adds 3 cash per round.' },
+  { id: 'open', title: 'Open release', description: 'Let people use and adapt the model. Sell convenient hosting and dependable service.', advantage: '25% more new developer adoption than the baseline. An open market gives a further adoption boost.', tradeoff: 'Paid conversion earns 72% of developer list revenue and 88% of enterprise list revenue. Adoption does not guarantee revenue.' },
+  { id: 'closed', title: 'Closed model', description: 'Keep the model controlled and sell access to it.', advantage: 'Earn the full list revenue from your served customer base.', tradeoff: '20% less new developer adoption than baseline. If open releases become standard, acquisition and revenue face further pressure.' },
+  { id: 'core', title: 'Open core', description: 'Offer an open base, then charge for advanced features and services.', advantage: '5% more new developer adoption than baseline. Earn 88% of developer and 94% of enterprise list revenue.', tradeoff: 'Supporting two offerings adds 3 cash to operations every round. Paid conversion is lower than a closed offer.' },
 ] as const;
 export const focuses = [
   { id: 'developers', title: 'Developers', description: 'More adoption, smaller bills. Ecosystem and affordability matter.' },
@@ -51,7 +51,7 @@ export type Market = { round: number; signals: Signal[]; developerDemand: number
 export type RoundResult = { round: number; openingCash: number; investmentCost: number; revenue: number; operatingCost: number; serviceCost: number; closingCash: number; developers: number; enterprise: number; trust: number; quality: number; reliability: number; ecosystem: number; capacity: number; unserved: number; plan: Plan; missed: boolean; explanations: string[] };
 export type Company = Setup & { cash: number; developers: number; enterprise: number; trust: number; quality: number; reliability: number; ecosystem: number; failed: boolean; history: RoundResult[] };
 export type Snapshot = { companies: Company[]; markets: Market[]; lastMix?: Mix | null };
-export type GameView = { room: string; phase: Phase; round: number; version: number; host: boolean; players: Company[]; me: (Company & { plan: Plan | null }) | null; submitted: number; active: number; market: Market; nextMarket: Market | null; mix: Mix | null; rulesVersion: number };
+export type GameView = { room: string; phase: Phase; round: number; version: number; host: boolean; players: (Company & { setupComplete: boolean })[]; me: (Company & { plan: Plan | null; setupComplete: boolean }) | null; ready: number; submitted: number; active: number; market: Market; nextMarket: Market | null; mix: Mix | null; rulesVersion: number };
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 const money = (v: number) => Math.round(v * 10) / 10;

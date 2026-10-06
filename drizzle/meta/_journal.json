@@ -15,6 +15,13 @@
       "when": 1791243275074,
       "tag": "0001_daily_kang",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791245809268,
+      "tag": "0002_sturdy_invisible_woman",
+      "breakpoints": true
     }
   ]
 }

@@ -15,6 +15,7 @@ export const simulationRooms = sqliteTable('simulation_rooms', {
 export const founders = sqliteTable('founders', {
   id: text('id').primaryKey(), room: text('room').notNull(), name: text('name').notNull(),
   token: text('token').notNull(), hub: text('hub').notNull(), release: text('release').notNull(),
+  ready: integer('ready').notNull().default(1),
 }, t => [index('founders_room').on(t.room)]);
 export const plans = sqliteTable('plans', {
   room: text('room').notNull(), player: text('player').notNull(), round: integer('round').notNull(), plan: text('plan').notNull(),

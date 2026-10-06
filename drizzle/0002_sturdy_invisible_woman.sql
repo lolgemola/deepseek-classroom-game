@@ -1,0 +1,1 @@
+ALTER TABLE `founders` ADD `ready` integer DEFAULT 1 NOT NULL;

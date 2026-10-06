@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
+import CompanySetup from './CompanySetup';
 import {
   hubs, releases, focuses, prices, investments, rounds, STARTING_CASH, ROUND_SECONDS,
   INVESTMENT_COST, OPERATING_RESERVE, canAfford, fallbackPlan, isPlan,
-  type GameView, type Hub, type Release, type Plan, type Market, type Company, type RoundResult, type Mix,
+  type GameView, type Plan, type Market, type Company, type RoundResult, type Mix,
 } from '@/lib/simulation';
 
 type Session = { room: string; host?: string; player?: string };
@@ -63,7 +64,7 @@ function ChoiceGroup({ title, items, value, onChange, disabled, unaffordable }: 
 
 export default function Game() {
   const [session, setSession] = useState<Session | null>(null), [data, setData] = useState<GameView | null>(null);
-  const [code, setCode] = useState(''), [name, setName] = useState(''), [hub, setHub] = useState<Hub>('developer'), [release, setRelease] = useState<Release>('core');
+  const [code, setCode] = useState(''), [name, setName] = useState(''), [linkedRoom, setLinkedRoom] = useState(false);
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [qr, setQr] = useState(''), [copied, setCopied] = useState(false);
   const [draft, setDraft] = useState<Plan>(defaultPlan), [review, setReview] = useState(false);
   const [seconds, setSeconds] = useState(ROUND_SECONDS), [running, setRunning] = useState(false);
@@ -76,7 +77,7 @@ export default function Game() {
   useEffect(() => {
     const room = new URLSearchParams(location.search).get('room')?.toUpperCase() ?? '';
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore browser-only state after server hydration.
-    setCode(room);
+    setCode(room); setLinkedRoom(Boolean(room));
     try {
       const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
       if (saved && typeof saved.room === 'string' && (saved.host || saved.player) && (!room || saved.room === room)) setSession(saved);
@@ -161,18 +162,16 @@ export default function Game() {
     <header><button type="button" className="brand" disabled={busy} onClick={leave}><span className="brandmark">D</span><span>DEEPSEEK<span className="subbrand">THE MARKET GAME</span></span></button><span className="badge">{isHost ? 'PRESENTER' : session ? 'FOUNDER' : 'CLASSROOM SIMULATION'}</span></header>
     {error && <div role="alert" className="error">{error}<button onClick={() => session ? refresh(session).then(setData).catch(e => setError(e.message)) : setError('')}>Retry</button></div>}
     {!session ? <div className="start"><section className="intro"><p className="eyebrow">YOUR STRATEGY. EVERYONE’S MARKET.</p><h1>Build a company.<br /><span>Shape the market.</span></h1><p className="lead">Choose where to start. Set your prices. Invest in what matters. Your class changes the conditions everyone faces next.</p><div className="initial"><div><strong>150</strong><span>Starting cash</span></div><div><strong>4</strong><span>Market rounds</span></div><div><strong>3</strong><span>Decisions each</span></div></div><Rules /></section>
-      <section className="panel join"><p className="eyebrow">TAKE YOUR SEAT</p><h2>Found your company</h2><form onSubmit={e => { e.preventDefault(); void act('join', { room: code.trim().toUpperCase(), name, hub, release }); }}>
-        <label htmlFor="room">Room code</label><input id="room" placeholder="e.g. A3F912" value={code} maxLength={6} autoCapitalize="characters" onChange={e => setCode(e.target.value.toUpperCase())} required />
+      <section className="panel join"><p className="eyebrow">STEP 1 · TAKE YOUR SEAT</p><h2>Name your company</h2><form onSubmit={e => { e.preventDefault(); void act('join', { room: code.trim().toUpperCase(), name }); }}>
+        {linkedRoom ? <p className="room-link">Joining room <b>{code}</b> <button type="button" className="textbutton" onClick={() => setLinkedRoom(false)}>Change room</button></p> : <><label htmlFor="room">Room code</label><input id="room" placeholder="e.g. A3F912" value={code} maxLength={6} autoCapitalize="characters" onChange={e => setCode(e.target.value.toUpperCase())} required /></>}
         <label htmlFor="company">Company name</label><input id="company" placeholder="Your fictional company" value={name} maxLength={24} onChange={e => setName(e.target.value)} required />
-        <label htmlFor="hub">Starting location</label><select id="hub" value={hub} onChange={e => setHub(e.target.value as Hub)}>{hubs.map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</select><p className="field-help">{hubs.find(h => h.id === hub)?.description}</p>
-        <label htmlFor="release">Release model</label><select id="release" value={release} onChange={e => setRelease(e.target.value as Release)}>{releases.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}</select><p className="field-help">{releases.find(r => r.id === release)?.description}</p>
-        <p className="small">Location and release model stay fixed for four rounds. All locations can serve both customer markets.</p><button className="primary" disabled={busy}>{busy ? 'Joining…' : 'Join as a founder'}</button>
+        <p className="small">Next, explore your starting ecosystem and release model. Each choice comes with explanations and trade-offs.</p><button className="primary" disabled={busy}>{busy ? 'Joining…' : 'Join & set up company'}</button>
       </form><div className="separator" /><button className="secondary" disabled={busy} onClick={() => void act('create')}>Host a new game</button><p className="small">10–15 minutes · fictional business environments</p></section></div>
       : !data ? <section className="panel connecting"><h2>Connecting to room {session.room}…</h2></section> : <>
         <div className="roomline"><span>ROOM <b>{session.room}</b></span><span>{data.players.length} founders</span><button disabled={busy} className="textbutton" onClick={leave}>Leave view</button></div>
-        <div className="progress">{rounds.map((r, i) => <div key={r.title} className={phase !== 'lobby' && i === data.round ? 'current' : i < data.round || phase === 'finished' ? 'complete' : ''}><span>0{i + 1}</span>{r.title}</div>)}</div>
-        {me && <><div className="company-context">{me.name} · {label(hubs, me.hub)} · {label(releases, me.release)}</div><section className="stats">{[['Cash', cash(me.cash)], ['Developers', me.developers], ['Enterprises', me.enterprise], ['Trust', me.trust + '/100']].map(([title, value]) => <div key={title}><span>{title}</span><strong>{value}</strong></div>)}</section><Capabilities company={me} /></>}
-        {phase === 'lobby' ? <div className="lobby"><section className="panel lobbyintro"><p className="eyebrow">THE MARKET OPENS SOON</p><h1>{isHost ? 'Your founders are arriving.' : "You're ready."}</h1><p className="lead">{isHost ? 'Everyone picks a location and release model when joining. Introduce the goal: finish with the most cash while staying solvent.' : 'Your presenter will introduce the first market. Your setup is fixed; your plan can change each round.'}</p><div className="names">{data.players.map(p => <span key={p.id}>{p.name} · {label(hubs, p.hub)}</span>)}</div><Rules />{isHost && <button className="primary" disabled={busy || !data.players.length} onClick={() => void act('advance', { version: data.version })}>Introduce round 1</button>}</section>
+        {(isHost || phase !== 'lobby' || me?.setupComplete) && <div className="progress">{rounds.map((r, i) => <div key={r.title} className={phase !== 'lobby' && i === data.round ? 'current' : i < data.round || phase === 'finished' ? 'complete' : ''}><span>0{i + 1}</span>{r.title}</div>)}</div>}
+        {me?.setupComplete && <><div className="company-context">{me.name} · {label(hubs, me.hub)} · {label(releases, me.release)}</div><section className="stats">{[['Cash', cash(me.cash)], ['Developers', me.developers], ['Enterprises', me.enterprise], ['Trust', me.trust + '/100']].map(([title, value]) => <div key={title}><span>{title}</span><strong>{value}</strong></div>)}</section><Capabilities company={me} /></>}
+        {phase === 'lobby' ? <div className={'lobby ' + (!isHost ? 'founder-lobby' : '')}>{me && !me.setupComplete ? <CompanySetup key={me.id} name={me.name} storageKey={'deepseek-setup:' + session.room + ':' + session.player} busy={busy} onConfirm={(hub, release) => void act('setup', { hub, release })} /> : <section className="panel lobbyintro"><p className="eyebrow">THE MARKET OPENS SOON</p><h1>{isHost ? 'Your founders are arriving.' : "You're ready."}</h1><p className="lead">{isHost ? 'Founders join with a name, then explore ecosystems and release models. Wait for everyone to confirm their setup.' : 'Your presenter will introduce the first market. Your setup is fixed; your plan can change each round.'}</p><div className="names">{data.players.map(p => <span key={p.id}>{p.name} · {p.setupComplete ? label(hubs, p.hub) + ' · Ready' : 'Choosing setup…'}</span>)}</div><Rules />{isHost && <p role="status" className="notice">{data.ready} / {data.players.length} founders ready</p>}{isHost && <button className="primary" disabled={busy || !data.players.length || data.ready !== data.players.length} onClick={() => void act('advance', { version: data.version })}>Introduce round 1</button>}</section>}
           {isHost && <section className="panel qrpanel">{qr && <img src={qr} alt="Scan to join this game" width={280} height={280} />}<h2>{session.room}</h2><p>Scan to join on your phone</p><button className="secondary" onClick={async () => { try { await navigator.clipboard.writeText(joinLink); setCopied(true); } catch { setError('Copy this join link: ' + joinLink); } }}>{copied ? 'Join link copied' : 'Copy join link'}</button><p className="small break">{joinLink}</p><p className="small">Use a deployed URL for phones. A localhost QR code works only on this computer.</p></section>}</div>
           : phase === 'finished' ? <section className="final"><p className="eyebrow">THE MARKET HAS CLOSED</p><h1>{data.players.every(p => p.failed) ? 'A tough market for everyone.' : 'The final company results.'}</h1><p className="lead">Highest ending cash among solvent companies wins. Equal cash shares the rank.</p><div className="panel debrief"><h2>What would customers pay for if the model were free?</h2><p>Who created value—and who captured it? Which early investment paid off? How did classmates change your strategy? Would the winner change over a longer horizon?</p></div>{isHost && <button className="primary" disabled={busy} onClick={() => void act('create')}>Create a fresh game</button>}</section>
           : <>

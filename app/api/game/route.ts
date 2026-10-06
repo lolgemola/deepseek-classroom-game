@@ -6,7 +6,7 @@ import {
 } from '@/lib/simulation';
 
 type Room = { code: string; host: string; phase: Phase; round: number; version: number; rules_version: number; snapshot: string };
-type Founder = { id: string; room: string; name: string; token: string; hub: Hub; release: Release };
+type Founder = { id: string; room: string; name: string; token: string; hub: Hub; release: Release; ready: number };
 type StoredPlan = { player: string; round: number; plan: string };
 const json = (value: unknown, status = 200) => Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } });
 const fail = (message: string, status = 400) => json({ error: message }, status);
@@ -38,8 +38,9 @@ export async function GET(req: Request) {
     const view: GameView = {
       room: room.code, phase: room.phase, round: room.round, version: room.version,
       rulesVersion: room.rules_version, host: url.searchParams.get('host') === room.host,
-      players: rankCompanies(snapshot.companies).map(c => ({ ...c, history: [] })),
-      me: company ? { ...company, plan: mine ? JSON.parse(mine.plan) : null } : null,
+      players: rankCompanies(snapshot.companies).map(c => ({ ...c, history: [], setupComplete: Boolean(founders.find(f => f.id === c.id)?.ready) })),
+      me: company ? { ...company, plan: mine ? JSON.parse(mine.plan) : null, setupComplete: Boolean(own?.ready) } : null,
+      ready: founders.filter(f => f.ready).length,
       active: active.length, submitted: current.filter(p => active.some(c => c.id === p.player)).length,
       market: snapshot.markets[room.round],
       nextMarket: room.phase === 'results' && room.round < 3 ? snapshot.markets[room.round + 1] : null,
@@ -79,12 +80,27 @@ export async function POST(req: Request) {
       if (room.phase !== 'lobby') return fail('This game has started. Join the next room.');
       const name = typeof body.name === 'string' ? body.name.trim().slice(0, 24) : '';
       if (!name) return fail('Enter a company name.');
-      if (!isSetup(body.hub, body.release)) return fail('Choose a starting hub and release model.');
       const id = crypto.randomUUID(), token = crypto.randomUUID();
-      const result = await db.prepare("INSERT INTO founders (id,room,name,token,hub,release) SELECT ?,?,?,?,?,? WHERE EXISTS (SELECT 1 FROM simulation_rooms WHERE code=? AND phase='lobby')")
-        .bind(id, room.code, name, token, body.hub, body.release, room.code).run();
+      const [result] = await db.batch([
+        db.prepare("INSERT INTO founders (id,room,name,token,hub,release,ready) SELECT ?,?,?,?,?,?,0 WHERE EXISTS (SELECT 1 FROM simulation_rooms WHERE code=? AND phase='lobby')")
+          .bind(id, room.code, name, token, 'developer', 'core', room.code),
+        db.prepare("UPDATE simulation_rooms SET version=version+1 WHERE code=? AND phase='lobby'").bind(room.code),
+      ]);
       if (!result.meta.changes) return fail('The game just started.');
       return json({ player: token });
+    }
+    if (body.action === 'setup') {
+      const founder = founders.find(f => f.token === secretOf(body.player));
+      if (!founder) return fail('Founder access required.', 403);
+      if (room.phase !== 'lobby') return fail('The game has started. Your setup is now fixed.', 409);
+      if (!isSetup(body.hub, body.release)) return fail('Choose a valid ecosystem and release model.');
+      const [result] = await db.batch([
+        db.prepare("UPDATE founders SET hub=?,release=?,ready=1 WHERE id=? AND room=? AND EXISTS (SELECT 1 FROM simulation_rooms WHERE code=? AND phase='lobby')")
+          .bind(body.hub, body.release, founder.id, room.code, room.code),
+        db.prepare("UPDATE simulation_rooms SET version=version+1 WHERE code=? AND phase='lobby'").bind(room.code),
+      ]);
+      if (!result.meta.changes) return fail('The game just started. Your setup is fixed.', 409);
+      return json({ ok: true });
     }
     if (body.action === 'choose') {
       const founder = founders.find(f => f.token === secretOf(body.player));
@@ -106,6 +122,7 @@ export async function POST(req: Request) {
       if (!Number.isInteger(body.version) || body.version !== room.version) return fail('The room changed. Refresh and retry.', 409);
       if (room.phase === 'finished') return fail('This game is finished.');
       if (room.phase === 'lobby' && !founders.length) return fail('Wait for at least one founder.');
+      if (room.phase === 'lobby' && founders.some(f => !f.ready)) return fail('Wait for every founder to confirm their company setup.');
       if (room.phase === 'planning' || room.phase === 'resolving') {
         let resolvingVersion = room.version;
         if (room.phase === 'planning') {
@@ -129,8 +146,8 @@ export async function POST(req: Request) {
       else if (room.phase === 'briefing') nextPhase = 'planning';
       else if (room.phase === 'results' && room.round === rounds.length - 1) nextPhase = 'finished';
       else { nextPhase = 'briefing'; nextRound++; }
-      const result = await db.prepare('UPDATE simulation_rooms SET phase=?,round=?,version=version+1 WHERE code=? AND version=? AND phase=?')
-        .bind(nextPhase, nextRound, room.code, room.version, room.phase).run();
+      const result = await db.prepare("UPDATE simulation_rooms SET phase=?,round=?,version=version+1 WHERE code=? AND version=? AND phase=? AND (? != 'lobby' OR NOT EXISTS (SELECT 1 FROM founders WHERE room=simulation_rooms.code AND ready=0))")
+        .bind(nextPhase, nextRound, room.code, room.version, room.phase, room.phase).run();
       if (!result.meta.changes) return fail('The room changed. Refresh and retry.', 409);
       return json({ ok: true });
     }
