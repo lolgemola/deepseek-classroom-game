@@ -47,24 +47,24 @@ export default function RoundResults({
       )}
       <div className="result-stages">
         <div>
-          <span>01 · ADOPTION</span>
+          <span>Open adoption</span>
           <strong>{r.adoption}</strong>
           <small>open-model adopters</small>
         </div>
         <div>
-          <span>02 · PAYING ACCOUNTS</span>
+          <span>Paying accounts</span>
           <strong>{r.developers + r.enterprise}</strong>
           <small>
             {r.developers} developer · {r.enterprise} enterprise
           </small>
         </div>
         <div>
-          <span>03 · RETAINED REVENUE</span>
+          <span>Retained revenue</span>
           <strong>{r.revenue.toFixed(1)}</strong>
           <small>after partner share {r.partnerCut.toFixed(1)}</small>
         </div>
         <div>
-          <span>04 · SPENDING</span>
+          <span>Spending</span>
           <strong>
             {(
               r.operatingCost +
@@ -76,14 +76,17 @@ export default function RoundResults({
           <small>operations, delivery, investment, transition</small>
         </div>
         <div>
-          <span>05 · ENDING CASH</span>
+          <span>Ending cash</span>
           <strong>{r.closingCash.toFixed(1)}</strong>
           <small>Community trust {r.trust}/100</small>
         </div>
       </div>
       <p className="takeaway">{r.takeaway}</p>
       <div className="result-grid">
-        <CashFlow result={r} />
+        <details>
+          <summary>Cash breakdown</summary>
+          <CashFlow result={r} />
+        </details>
         <div>
           <h3>Why this happened</h3>
           <ul className="explanations">

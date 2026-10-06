@@ -31,7 +31,7 @@ export default function CompanySetup({
         <li className={review ? "complete" : "current"}>2 · Ecosystem</li>
         <li className={review ? "current" : ""}>3 · Review</li>
       </ol>
-      <p className="eyebrow">{name} · COMPANY SETUP</p>
+      <p className="eyebrow">{name} · Company setup</p>
       <h1>
         {review
           ? "Your company starts here."

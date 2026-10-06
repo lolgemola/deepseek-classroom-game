@@ -15,3 +15,7 @@ All outcomes are calculated by server rules. Plan closure freezes submissions at
 The local database migration does not deploy production. Sites now hosts the Worker and D1 database. A rehearsal on two physical phones plus a presenter laptop remains necessary before class. The .openai/hosting.json retains the published Sites registration and logical DB binding, with no credentials. GitHub Pages cannot host the multiplayer backend.
 
 Sites publishing on this Windows machine: run the native source workflow first. Local packaging fails because the bundled Bash packager receives a Windows path. After its verified source push, save a source-only version and deploy it with Sites' hosted build fallback. Preserve public access and project ID appgprj_6ac42638b1f88191aede06a4bf113374. GitHub origin is separate; push updates there too.
+
+## Visual refresh
+Apple-inspired light theme with system typography, white cards, blue actions and responsive layouts. Planning keeps the three decisions and trade-offs visible; company maps, cash reconciliation and intermediate presenter comparisons expand on demand. Removed optional rationale entry, repeated rules, duplicate result metrics and planning leaderboards. Economics unchanged. Validated desktop and 390 x 844 phone layout, local join/setup/lock/result flow, TypeScript and production build.
+

@@ -10,9 +10,7 @@ export default function CompanyProfile({ company: c }: { company: Company }) {
   const last = c.history.at(-1);
   return (
     <article className="panel company-profile">
-      <p className="eyebrow">
-        {c.failed ? "OUT OF CASH" : "FOUR-ROUND FINANCIAL RESULT"}
-      </p>
+      <p className="eyebrow">{c.failed ? "Out of cash" : "Financial result"}</p>
       <h2>{c.name}</h2>
       <p>{paths.find((p) => p.id === c.path)?.title ?? "No path yet"}</p>
       <figure className="cash-chart">
@@ -24,16 +22,16 @@ export default function CompanyProfile({ company: c }: { company: Company }) {
             .map((v, i) => `${i ? "Round " + i : "Start"}: ${v.toFixed(1)}`)
             .join(", ")}
         >
-          <line x1="15" y1={y(0)} x2="305" y2={y(0)} stroke="#40516c" />
+          <line x1="15" y1={y(0)} x2="305" y2={y(0)} stroke="var(--line)" />
           <polyline
             points={values.map((v, i) => `${20 + i * 70},${y(v)}`).join(" ")}
             fill="none"
-            stroke="#6de0ba"
+            stroke="var(--blue)"
             strokeWidth="3"
           />
           {values.map((v, i) => (
             <g key={i}>
-              <circle cx={20 + i * 70} cy={y(v)} r="4" fill="#6de0ba" />
+              <circle cx={20 + i * 70} cy={y(v)} r="4" fill="var(--blue)" />
               <text x={20 + i * 70} y={y(v) - 9} textAnchor="middle">
                 {Math.round(v)}
               </text>
@@ -65,7 +63,10 @@ export default function CompanyProfile({ company: c }: { company: Company }) {
         {last?.investmentCost ?? 0}, transition {last?.transitionCost ?? 0}.
         Dependence is an index.
       </p>
-      <CompanyMap company={c} />
+      <details className="business-map">
+        <summary>Company connections</summary>
+        <CompanyMap company={c} />
+      </details>
       <p className="small">
         Four rounds do not establish long-term sustainability.
       </p>

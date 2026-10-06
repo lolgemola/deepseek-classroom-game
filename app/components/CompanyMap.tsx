@@ -13,7 +13,7 @@ export default function CompanyMap({
       className={"company-map " + (partner ? "partner-route" : "direct-route")}
     >
       <figcaption>
-        <span className="eyebrow">YOUR BUSINESS AT A GLANCE</span>
+        <span className="eyebrow">Your business at a glance</span>
         <h3>{paths.find((p) => p.id === path)?.offering}</h3>
       </figcaption>
       <div className="map-layout">

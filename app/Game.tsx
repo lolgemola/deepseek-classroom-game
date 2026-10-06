@@ -99,7 +99,7 @@ function MarketBrief({
   return (
     <section className="panel market">
       <p className="eyebrow">
-        {preview ? "NEXT ROUND · YOUR CLASS SHAPED THIS" : "MARKET BULLETIN"}
+        {preview ? "Next round · Shaped by your class" : "Market conditions"}
       </p>
       <h2>{rounds[market.round].title}: the market you face</h2>
       <p className="lead">{rounds[market.round].briefing}</p>
@@ -476,11 +476,11 @@ export default function Game() {
         <button type="button" className="brand" disabled={busy} onClick={leave}>
           <span className="brandmark">D</span>
           <span>
-            DEEPSEEK<span className="subbrand">THE MARKET GAME</span>
+            DeepSeek<span className="subbrand">The market game</span>
           </span>
         </button>
         <span className="badge">
-          {isHost ? "PRESENTER" : session ? "FOUNDER" : "CLASSROOM SIMULATION"}
+          {isHost ? "Presenter" : session ? "Founder" : "Classroom game"}
         </span>
       </header>
       {error && (
@@ -503,7 +503,7 @@ export default function Game() {
       {!session ? (
         <div className="start">
           <section className="intro">
-            <p className="eyebrow">YOUR STRATEGY. EVERYONE’S MARKET.</p>
+            <p className="eyebrow">Your strategy. Everyone’s market.</p>
             <h1>
               Build a company.
               <br />
@@ -514,24 +514,10 @@ export default function Game() {
               licensing, partnerships or services. Your class shapes the market
               everyone faces next.
             </p>
-            <div className="initial">
-              <div>
-                <strong>150</strong>
-                <span>Starting cash</span>
-              </div>
-              <div>
-                <strong>4</strong>
-                <span>Market rounds</span>
-              </div>
-              <div>
-                <strong>3</strong>
-                <span>Decisions each</span>
-              </div>
-            </div>
-            <Rules />
+            <p className="initial">4 rounds · 3 decisions · 10–15 minutes</p>
           </section>
           <section className="panel join">
-            <p className="eyebrow">STEP 1 · TAKE YOUR SEAT</p>
+            <p className="eyebrow">Welcome to the market</p>
             <h2>Name your company</h2>
             <form
               onSubmit={(e) => {
@@ -589,9 +575,6 @@ export default function Game() {
             >
               Host a new game
             </button>
-            <p className="small">
-              10–15 minutes · fictional business environments
-            </p>
           </section>
         </div>
       ) : !data ? (
@@ -602,7 +585,7 @@ export default function Game() {
         <>
           <div className="roomline">
             <span>
-              ROOM <b>{session.room}</b>
+              Room <b>{session.room}</b>
             </span>
             <span>{data.players.length} founders</span>
             <button disabled={busy} className="textbutton" onClick={leave}>
@@ -615,7 +598,9 @@ export default function Game() {
                 <div
                   key={r.title}
                   className={
-                    phase !== "lobby" && i === data.round
+                    phase !== "lobby" &&
+                    phase !== "finished" &&
+                    i === data.round
                       ? "current"
                       : i < data.round || phase === "finished"
                         ? "complete"
@@ -628,7 +613,7 @@ export default function Game() {
               ))}
             </div>
           )}
-          {me?.setupComplete && (
+          {me?.setupComplete && phase !== "results" && phase !== "finished" && (
             <>
               <div className="company-context">
                 {me.name} · {label(hubs, me.hub)} · Open base model
@@ -663,7 +648,7 @@ export default function Game() {
                 />
               ) : (
                 <section className="panel lobbyintro">
-                  <p className="eyebrow">THE MARKET OPENS SOON</p>
+                  <p className="eyebrow">Getting started</p>
                   <h1>
                     {isHost ? "Your founders are arriving." : "You're ready."}
                   </h1>
@@ -682,7 +667,6 @@ export default function Game() {
                       </span>
                     ))}
                   </div>
-                  <Rules />
                   {isHost && (
                     <p role="status" className="notice">
                       {data.ready} / {data.players.length} founders ready
@@ -731,16 +715,12 @@ export default function Game() {
                     {copied ? "Join link copied" : "Copy join link"}
                   </button>
                   <p className="small break">{joinLink}</p>
-                  <p className="small">
-                    Use a deployed URL for phones. A localhost QR code works
-                    only on this computer.
-                  </p>
                 </section>
               )}
             </div>
           ) : phase === "finished" ? (
             <section className="final">
-              <p className="eyebrow">THE MARKET HAS CLOSED</p>
+              <p className="eyebrow">Market closed</p>
               <h1>
                 {data.players.every((p) => p.failed)
                   ? "A tough market for everyone."
@@ -783,12 +763,12 @@ export default function Game() {
               <div className="roundheading">
                 <div>
                   <p className="eyebrow">
-                    ROUND {data.round + 1} / 4 ·{" "}
+                    Round {data.round + 1} / 4 ·{" "}
                     {phase === "briefing"
-                      ? "READ THE MARKET"
+                      ? "Read the market"
                       : phase === "planning"
-                        ? "BUILD YOUR PLAN"
-                        : "RESULTS"}
+                        ? "Build your plan"
+                        : "Results"}
                   </p>
                   <h1>{rounds[data.round].title}</h1>
                 </div>
@@ -839,7 +819,7 @@ export default function Game() {
                   </section>
                 ) : me?.plan ? (
                   <section className="panel locked">
-                    <p className="eyebrow">PLAN LOCKED</p>
+                    <p className="eyebrow">Plan locked</p>
                     <PlanSummary plan={me.plan} />
                     <p role="status">
                       Waiting for the presenter to close the round.
@@ -853,7 +833,10 @@ export default function Game() {
                       disabled={busy || review}
                       onChange={(path) => edit({ ...draft, path })}
                     />
-                    <CompanyMap company={me} path={draft.path} />
+                    <details className="business-map">
+                      <summary>How your business works</summary>
+                      <CompanyMap company={me} path={draft.path} />
+                    </details>
                     <ChoiceGroup
                       title="2. What will you charge?"
                       items={prices}
@@ -890,37 +873,12 @@ export default function Game() {
                         edit({ ...draft, investment: id as Plan["investment"] })
                       }
                     />
-                    {draft.investment !== "save" && (
-                      <p className="small">
-                        Capability gains before diminishing returns:{" "}
-                        {investments
-                          .find((i) => i.id === draft.investment)!
-                          .gains.map(
-                            (v, i) =>
-                              `${["quality", "reliability", "ecosystem"][i]} +${v}`,
-                          )
-                          .join(" · ")}
-                      </p>
-                    )}
                     {!canAfford(me, draft.investment, draft.path) && (
                       <p role="status" className="notice">
                         This plan cannot leave the 20-cash reserve. Reduce
                         investment or keep your existing path.
                       </p>
                     )}
-                    <details className="rationale">
-                      <summary>Add a reason (optional)</summary>
-                      <label htmlFor="rationale">We chose this because…</label>
-                      <textarea
-                        id="rationale"
-                        maxLength={160}
-                        value={draft.rationale ?? ""}
-                        disabled={busy || review}
-                        onChange={(e) =>
-                          edit({ ...draft, rationale: e.target.value })
-                        }
-                      />
-                    </details>
                     <div className="budget">
                       <span>
                         Investment <b>{investmentCost}</b>
@@ -1092,7 +1050,12 @@ export default function Game() {
                       </p>
                     )}
                   </section>
-                  {isHost && <CompanyComparison companies={data.players} />}
+                  {isHost && (
+                    <details className="panel">
+                      <summary>Explore company results</summary>
+                      <CompanyComparison companies={data.players} />
+                    </details>
+                  )}
                   {data.nextMarket && (
                     <MarketBrief market={data.nextMarket} preview />
                   )}
@@ -1120,7 +1083,7 @@ export default function Game() {
               )}
             </>
           )}
-          {phase !== "lobby" && (
+          {(phase === "results" || phase === "finished") && (
             <section className="panel leaderboard">
               <div className="boardheading">
                 <h2>
@@ -1184,13 +1147,10 @@ export default function Game() {
             </details>
           )}
           {data.mix && <ClassMix mix={data.mix} />}
-          {phase !== "lobby" && <Rules />}
         </>
       )}
-      <footer>
-        Inspired by the DeepSeek case · Fictional markets and financial units ·
-        Your decisions shape the next round
-      </footer>
+      {(!session || isHost || me?.setupComplete) && <Rules />}
+      <footer>Classroom strategy simulation · Fictional financial units</footer>
     </main>
   );
 }
